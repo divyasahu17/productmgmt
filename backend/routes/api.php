@@ -24,5 +24,8 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
+        
+        // Categories
+        Route::apiResource('categories', \App\Http\Controllers\Api\V1\CategoryController::class);
     });
 });
