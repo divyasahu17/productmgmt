@@ -1,73 +1,73 @@
 <template>
-  <div class="dashboard-container">
-    <nav class="navbar">
-      <div class="brand">ProductMgmt</div>
-      <div class="nav-links">
-        <span v-if="authStore.user">Welcome, {{ authStore.user.name }}!</span>
-        <button @click="handleLogout" class="logout-btn">Logout</button>
+  <div class="dashboard-content">
+    <div class="header">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="subtitle">Welcome back to your dashboard.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total Products</h3>
+        <p class="stat-value">0</p>
       </div>
-    </nav>
-    <main class="content">
-      <h1>Dashboard</h1>
-      <p>You are successfully authenticated and viewing a protected route.</p>
-    </main>
+      <div class="stat-card">
+        <h3>Categories</h3>
+        <p class="stat-value">0</p>
+      </div>
+      <div class="stat-card">
+        <h3>Notifications</h3>
+        <p class="stat-value">0</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { useAuthStore } from '../stores/auth';
-import { useRouter } from 'vue-router';
-import { onMounted } from 'vue';
-
-const authStore = useAuthStore();
-const router = useRouter();
-
-const handleLogout = async () => {
-  await authStore.logout();
-  router.push('/login');
-};
-
-onMounted(() => {
-    if (!authStore.user) {
-        authStore.fetchUser();
-    }
-});
+// Dashboard logic will go here
 </script>
 
 <style scoped>
-.dashboard-container {
-  min-height: 100vh;
-  background-color: #f0f2f5;
-}
-.navbar {
-  background-color: #fff;
-  padding: 1rem 2rem;
+.dashboard-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  flex-direction: column;
+  gap: 2rem;
 }
-.brand {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
+
+.header .page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
 }
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+
+.header .subtitle {
+  color: #64748b;
 }
-.logout-btn {
-  background-color: #f44336;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
 }
-.content {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.stat-card h3 {
+  font-size: 1rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 </style>

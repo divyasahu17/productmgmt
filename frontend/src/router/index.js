@@ -4,7 +4,39 @@ import { useAuthStore } from '../stores/auth';
 const routes = [
     {
         path: '/',
-        redirect: '/dashboard'
+        component: () => import('../components/layout/AdminLayout.vue'),
+        meta: { requiresAuth: true },
+        children: [
+            {
+                path: '',
+                redirect: '/dashboard'
+            },
+            {
+                path: 'dashboard',
+                name: 'Dashboard',
+                component: () => import('../views/DashboardView.vue'),
+            },
+            {
+                path: 'products',
+                name: 'Products',
+                component: () => import('../views/ProductsView.vue'),
+            },
+            {
+                path: 'categories',
+                name: 'Categories',
+                component: () => import('../views/CategoriesView.vue'),
+            },
+            {
+                path: 'notifications',
+                name: 'Notifications',
+                component: () => import('../views/NotificationsView.vue'),
+            },
+            {
+                path: 'profile',
+                name: 'Profile',
+                component: () => import('../views/ProfileView.vue'),
+            }
+        ]
     },
     {
         path: '/login',
@@ -17,12 +49,6 @@ const routes = [
         name: 'Register',
         component: () => import('../views/auth/RegisterView.vue'),
         meta: { guest: true }
-    },
-    {
-        path: '/dashboard',
-        name: 'Dashboard',
-        component: () => import('../views/DashboardView.vue'),
-        meta: { requiresAuth: true }
     }
 ];
 
@@ -34,9 +60,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
     
-    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    if (to.matched.some(record => record.meta.requiresAuth) && !authStore.isAuthenticated) {
         next('/login');
-    } else if (to.meta.guest && authStore.isAuthenticated) {
+    } else if (to.matched.some(record => record.meta.guest) && authStore.isAuthenticated) {
         next('/dashboard');
     } else {
         next();
