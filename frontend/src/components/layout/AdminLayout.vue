@@ -23,11 +23,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import Sidebar from './Sidebar.vue';
 import Navbar from './Navbar.vue';
+import { useAuthStore } from '../../stores/auth';
 
 const isSidebarOpen = ref(false);
+const authStore = useAuthStore();
+
+onMounted(() => {
+  if (!authStore.user) {
+    authStore.fetchUser();
+  }
+});
 </script>
 
 <style scoped>
