@@ -15,6 +15,11 @@ class Category extends Model
         'status' => 'boolean',
     ];
 
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+
     protected static function boot()
     {
         parent::boot();

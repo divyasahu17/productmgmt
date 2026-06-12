@@ -95,33 +95,22 @@
       </div>
 
       <!-- Low Stock Alerts -->
-      <div class="card low-stock-alert">
+      <div class="card alerts-card">
         <div class="card-header">
-          <h2>Low Stock Alerts</h2>
-          <span class="badge badge-orange">5 Items</span>
+          <h2 class="card-title">Low Stock Alerts</h2>
+          <button class="btn-text">View All</button>
         </div>
-        <div class="card-body">
-          <ul class="stock-list">
-            <li class="stock-item">
-              <div class="product-info">
-                <span class="product-name">Samsung Galaxy S23</span>
-                <span class="product-sku">SKU: SMG-S23</span>
+        <div class="card-body p-0">
+          <div v-if="loadingLowStock" style="padding: 1rem; text-align: center; color: #64748b;">Loading alerts...</div>
+          <div v-else-if="lowStockProducts.length === 0" style="padding: 1rem; text-align: center; color: #64748b;">No low stock alerts.</div>
+          <ul class="alert-list" v-else>
+            <li class="alert-item" v-for="product in lowStockProducts" :key="product.id">
+              <div class="alert-icon">⚠️</div>
+              <div class="alert-content">
+                <p class="alert-text"><strong>{{ product.name }}</strong> is running low.</p>
+                <span class="alert-meta">Only {{ product.stock }} items left in stock</span>
               </div>
-              <span class="stock-count text-danger">2 left</span>
-            </li>
-            <li class="stock-item">
-              <div class="product-info">
-                <span class="product-name">Sony WH-1000XM5</span>
-                <span class="product-sku">SKU: SNY-XM5</span>
-              </div>
-              <span class="stock-count text-danger">0 left</span>
-            </li>
-            <li class="stock-item">
-              <div class="product-info">
-                <span class="product-name">Apple Watch Series 9</span>
-                <span class="product-sku">SKU: APW-S9</span>
-              </div>
-              <span class="stock-count text-orange">4 left</span>
+              <button class="btn-sm" @click="$router.push('/products')">Restock</button>
             </li>
           </ul>
         </div>
@@ -131,9 +120,31 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
 import { useAuthStore } from '../stores/auth';
+import api from '../services/api';
 
 const authStore = useAuthStore();
+const lowStockProducts = ref([]);
+const loadingLowStock = ref(true);
+
+onMounted(async () => {
+  try {
+    const response = await api.get('/v1/dashboard/low-stock');
+    lowStockProducts.value = response.data.data;
+  } catch (error) {
+    console.error('Failed to load low stock products', error);
+  } finally {
+    loadingLowStock.value = false;
+  }
+});
+
+const stats = ref([
+  { title: 'Total Revenue', value: '$45,231.89', change: '+20.1%', positive: true, icon: '💵' },
+  { title: 'Products Sold', value: '1,205', change: '+10.5%', positive: true, icon: '📦' },
+  { title: 'Active Categories', value: '12', change: '0.0%', positive: true, icon: '📂' },
+  { title: 'Total Customers', value: '842', change: '+5.2%', positive: true, icon: '👥' },
+]);
 </script>
 
 <style scoped>

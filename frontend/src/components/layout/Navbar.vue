@@ -9,12 +9,39 @@
     </div>
     <div class="nav-right">
       <!-- Notification Bell -->
-      <button class="icon-btn notification-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-        </svg>
-        <span class="badge">3</span>
-      </button>
+      <div class="notification-menu">
+        <button class="icon-btn notification-btn" @click="toggleNotifications">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+          </svg>
+          <span class="badge" v-if="notificationStore.unreadCount > 0">{{ notificationStore.unreadCount }}</span>
+        </button>
+
+        <div class="dropdown-menu notif-dropdown" v-show="isNotifOpen">
+          <div class="notif-header">
+            <h4>Notifications</h4>
+            <button class="text-btn" @click="markAllRead" v-if="notificationStore.unreadCount > 0">Mark all as read</button>
+          </div>
+          <div class="notif-body" v-if="notificationStore.notifications.length > 0">
+            <div 
+              v-for="notif in notificationStore.notifications" 
+              :key="notif.id" 
+              class="notif-item" 
+              :class="{ 'unread': notif.read_at === null }"
+              @click="markAsRead(notif.id)"
+            >
+              <div class="notif-icon">⚠️</div>
+              <div class="notif-content">
+                <p>{{ notif.data.message }}</p>
+                <span class="notif-time">{{ new Date(notif.created_at).toLocaleDateString() }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="notif-body empty-notif" v-else>
+            No notifications yet.
+          </div>
+        </div>
+      </div>
 
       <!-- User Dropdown -->
       <div class="user-menu" @click="isDropdownOpen = !isDropdownOpen" v-if="authStore.user">
@@ -43,15 +70,44 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useNotificationStore } from '../../stores/notification';
 import { useRouter } from 'vue-router';
 
 defineEmits(['toggleSidebar']);
 
 const authStore = useAuthStore();
+const notificationStore = useNotificationStore();
 const router = useRouter();
+
 const isDropdownOpen = ref(false);
+const isNotifOpen = ref(false);
+
+onMounted(() => {
+  if (authStore.user) {
+    notificationStore.fetchNotifications();
+    // Poll for notifications every 30 seconds
+    setInterval(() => {
+      notificationStore.fetchNotifications();
+    }, 30000);
+  }
+});
+
+const toggleNotifications = () => {
+  isNotifOpen.value = !isNotifOpen.value;
+  if (isNotifOpen.value) {
+    isDropdownOpen.value = false;
+  }
+};
+
+const markAsRead = async (id) => {
+  await notificationStore.markAsRead(id);
+};
+
+const markAllRead = async () => {
+  await notificationStore.markAllAsRead();
+};
 
 const handleLogout = async () => {
   await authStore.logout();
@@ -246,5 +302,93 @@ const handleLogout = async () => {
   .user-name {
     display: none;
   }
+  .notif-dropdown {
+    width: 300px;
+    right: -50px;
+  }
+}
+
+/* Notification Dropdown Specifics */
+.notification-menu {
+  position: relative;
+}
+
+.notif-dropdown {
+  width: 320px;
+  right: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.notif-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.text-btn {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.text-btn:hover {
+  text-decoration: underline;
+}
+
+.notif-body {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.empty-notif {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.notif-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.notif-item:hover {
+  background-color: #f8fafc;
+}
+
+.notif-item.unread {
+  background-color: #eff6ff;
+}
+
+.notif-icon {
+  font-size: 1.25rem;
+}
+
+.notif-content p {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.notif-time {
+  font-size: 0.75rem;
+  color: #94a3b8;
 }
 </style>

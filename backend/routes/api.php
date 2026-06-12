@@ -25,7 +25,18 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
         
+        // Notifications
+        Route::get('/notifications', [\App\Http\Controllers\Api\V1\NotificationController::class, 'index']);
+        Route::put('/notifications/{id}/read', [\App\Http\Controllers\Api\V1\NotificationController::class, 'markAsRead']);
+        Route::put('/notifications/read-all', [\App\Http\Controllers\Api\V1\NotificationController::class, 'markAllAsRead']);
+
+        // Dashboard
+        Route::get('/dashboard/low-stock', [\App\Http\Controllers\Api\V1\DashboardController::class, 'lowStock']);
+        
         // Categories
         Route::apiResource('categories', \App\Http\Controllers\Api\V1\CategoryController::class);
+
+        // Products
+        Route::apiResource('products', \App\Http\Controllers\Api\V1\ProductController::class);
     });
 });
