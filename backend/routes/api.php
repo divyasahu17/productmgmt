@@ -20,6 +20,10 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
+    // Public Storefront routes
+    Route::get('/public/categories', [\App\Http\Controllers\Api\V1\StorefrontController::class, 'categories']);
+    Route::get('/public/products', [\App\Http\Controllers\Api\V1\StorefrontController::class, 'products']);
+
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
