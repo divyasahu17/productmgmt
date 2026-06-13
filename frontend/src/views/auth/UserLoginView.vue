@@ -32,7 +32,10 @@
           {{ authStore.loading ? 'Signing in...' : 'Sign In' }}
         </button>
       </form>
-      <p>Don't have an account? <router-link to="/register">Register here</router-link></p>
+      <div class="auth-links">
+        <p>Don't have an account? <router-link to="/register">Register here</router-link></p>
+        <p><router-link to="/forgot-password" class="forgot-link">Forgot Password?</router-link></p>
+      </div>
     </div>
   </div>
 </template>
@@ -163,5 +166,26 @@ button:disabled {
   border-radius: 4px;
   margin-top: 1rem;
   font-size: 0.875rem;
+}
+.auth-links {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+.auth-links p {
+  margin: 0.5rem 0;
+  color: #64748b;
+}
+.auth-links a {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.auth-links a:hover {
+  color: #4338ca;
+  text-decoration: underline;
+}
+.forgot-link {
+  font-size: 0.9rem;
 }
 </style>

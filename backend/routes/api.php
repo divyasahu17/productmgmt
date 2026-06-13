@@ -19,6 +19,8 @@ Route::prefix('v1')->group(function () {
     // Public routes
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [\App\Http\Controllers\Api\V1\PasswordResetController::class, 'sendResetOtp']);
+    Route::post('/reset-password', [\App\Http\Controllers\Api\V1\PasswordResetController::class, 'verifyOtpAndReset']);
 
     // Marketplace Public routes
     Route::get('/marketplace/categories', [\App\Http\Controllers\Api\V1\MarketplaceController::class, 'categories']);

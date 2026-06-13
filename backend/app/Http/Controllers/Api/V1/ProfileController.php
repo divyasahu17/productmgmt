@@ -80,6 +80,9 @@ class ProfileController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Send confirmation email
+        Mail::to($user->email)->send(new \App\Mail\PasswordChangedMail());
+
         return response()->json([
             'message' => 'Password updated successfully',
         ]);

@@ -111,6 +111,32 @@ export const useAuthStore = defineStore('auth', {
                 this.loading = false;
             }
         },
+        async requestPasswordReset(email) {
+            this.loading = true;
+            this.error = null;
+            try {
+                await api.post('/v1/forgot-password', { email });
+                return true;
+            } catch (err) {
+                this.error = err.response?.data?.errors || err.message;
+                return false;
+            } finally {
+                this.loading = false;
+            }
+        },
+        async resetPassword(data) {
+            this.loading = true;
+            this.error = null;
+            try {
+                await api.post('/v1/reset-password', data);
+                return true;
+            } catch (err) {
+                this.error = err.response?.data?.errors || err.message;
+                return false;
+            } finally {
+                this.loading = false;
+            }
+        },
         setToken(token) {
             this.token = token;
             localStorage.setItem('token', token);
