@@ -27,7 +27,8 @@
       </router-link>
       <router-link to="/admin/notifications" class="nav-item" @click="$emit('close')">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
-        Notifications
+        <span class="nav-text">Notifications</span>
+        <span v-if="notificationStore.unreadCount > 0" class="badge">{{ notificationStore.unreadCount }}</span>
       </router-link>
       <router-link to="/admin/profile" class="nav-item" @click="$emit('close')">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
@@ -38,6 +39,9 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
+import { useNotificationStore } from '../../stores/notification';
+
 defineProps({
   isOpen: {
     type: Boolean,
@@ -45,6 +49,12 @@ defineProps({
   }
 });
 defineEmits(['close']);
+
+const notificationStore = useNotificationStore();
+
+onMounted(() => {
+  notificationStore.fetchUnreadCount();
+});
 </script>
 
 <style scoped>
@@ -111,6 +121,20 @@ defineEmits(['close']);
 .nav-item svg {
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
+}
+
+.nav-text {
+  flex-grow: 1;
+}
+
+.badge {
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
 }
 
 .nav-item:hover {

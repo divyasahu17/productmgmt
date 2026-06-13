@@ -10,9 +10,18 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        $perPage = $request->input('per_page', 10);
+        
+        $notifications = $user->notifications()->paginate($perPage);
+
         return response()->json([
             'unread_count' => $user->unreadNotifications()->count(),
-            'notifications' => $user->notifications()->take(10)->get()
+            'notifications' => $notifications->items(),
+            'meta' => [
+                'current_page' => $notifications->currentPage(),
+                'last_page' => $notifications->lastPage(),
+                'total' => $notifications->total()
+            ]
         ]);
     }
 

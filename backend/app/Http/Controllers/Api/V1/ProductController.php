@@ -7,6 +7,9 @@ use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
+use App\Models\User;
+use App\Notifications\LowStockNotification;
+use Illuminate\Support\Facades\Notification;
 
 use Illuminate\Http\Request;
 
@@ -37,6 +40,12 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $product = Product::create($request->validated());
+        
+        if ($product->stock <= 5) {
+            $admins = User::where('role', 'admin')->get();
+            Notification::send($admins, new LowStockNotification($product));
+        }
+
         return new ProductResource($product->load('category'));
     }
 
@@ -48,6 +57,12 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product)
     {
         $product->update($request->validated());
+
+        if ($product->stock <= 5) {
+            $admins = User::where('role', 'admin')->get();
+            Notification::send($admins, new LowStockNotification($product));
+        }
+
         return new ProductResource($product->load('category'));
     }
 
