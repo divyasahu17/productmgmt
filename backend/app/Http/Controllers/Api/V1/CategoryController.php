@@ -11,9 +11,22 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return CategoryResource::collection(Category::orderBy('created_at', 'desc')->get());
+        $query = Category::query();
+
+        if ($request->has('search') && $request->search !== null && $request->search !== '') {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->has('status') && $request->status !== null && $request->status !== '') {
+            $query->where('status', $request->status);
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $categories = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+        return CategoryResource::collection($categories);
     }
 
     public function store(StoreCategoryRequest $request)

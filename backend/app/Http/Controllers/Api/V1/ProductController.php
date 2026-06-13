@@ -8,11 +8,30 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 
+use Illuminate\Http\Request;
+
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return ProductResource::collection(Product::with('category')->orderBy('created_at', 'desc')->get());
+        $query = Product::with('category');
+
+        if ($request->has('search') && $request->search !== null && $request->search !== '') {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->has('category_id') && $request->category_id !== null && $request->category_id !== '') {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->has('status') && $request->status !== null && $request->status !== '') {
+            $query->where('status', $request->status);
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $products = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+        return ProductResource::collection($products);
     }
 
     public function store(StoreProductRequest $request)

@@ -18,6 +18,26 @@
     </div>
 
     <div class="card">
+      <div class="toolbar">
+        <div class="search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+          <input type="text" v-model="searchQuery" @input="debouncedFetch" placeholder="Search products..." />
+        </div>
+        <div class="filter-box">
+          <select v-model="selectedCategoryFilter" @change="debouncedFetch">
+            <option value="">All Categories</option>
+            <option v-for="cat in categoryStore.categories" :key="cat.id" :value="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+          <select v-model="selectedStatusFilter" @change="debouncedFetch">
+            <option value="">All Statuses</option>
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+          </select>
+        </div>
+      </div>
+
       <div v-if="store.loading && !store.products.length" class="loading-state">
         Loading products...
       </div>
@@ -73,6 +93,13 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination" v-if="store.totalPages > 1">
+        <button :disabled="store.currentPage === 1" @click="changePage(store.currentPage - 1)">Previous</button>
+        <span class="page-info">Page {{ store.currentPage }} of {{ store.totalPages }}</span>
+        <button :disabled="store.currentPage === store.totalPages" @click="changePage(store.currentPage + 1)">Next</button>
+      </div>
     </div>
 
     <ProductModal 
@@ -87,9 +114,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useProductStore } from '../stores/product';
+import { useCategoryStore } from '../stores/category';
 import ProductModal from '../components/products/ProductModal.vue';
 
 const store = useProductStore();
+const categoryStore = useCategoryStore();
 const isModalOpen = ref(false);
 const selectedProduct = ref(null);
 const successMessage = ref('');
@@ -104,8 +133,37 @@ const showSuccess = (msg) => {
   }, 3000);
 };
 
+const searchQuery = ref('');
+const selectedCategoryFilter = ref('');
+const selectedStatusFilter = ref('');
+let searchTimeout = null;
+
+const fetchProducts = () => {
+  store.fetchProducts({
+    page: store.currentPage,
+    search: searchQuery.value,
+    category_id: selectedCategoryFilter.value,
+    status: selectedStatusFilter.value,
+    per_page: 6
+  });
+};
+
+const debouncedFetch = () => {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    store.currentPage = 1;
+    fetchProducts();
+  }, 300);
+};
+
+const changePage = (page) => {
+  store.currentPage = page;
+  fetchProducts();
+};
+
 onMounted(() => {
-  store.fetchProducts();
+  categoryStore.fetchCategories({ per_page: 100 }); // fetch enough for the dropdown
+  fetchProducts();
 });
 
 const openAddModal = () => {
@@ -237,6 +295,86 @@ const handleModalSaved = () => {
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   overflow: hidden;
+}
+
+.toolbar {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  gap: 1rem;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  max-width: 300px;
+}
+
+.search-box svg {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.5rem 0.5rem 0.5rem 2.25rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-box input:focus {
+  border-color: #4f46e5;
+}
+
+.filter-box {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-box select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  outline: none;
+  background: white;
+  min-width: 150px;
+}
+
+.pagination {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pagination button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #475569;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 0.875rem;
+  color: #64748b;
 }
 
 .empty-state {

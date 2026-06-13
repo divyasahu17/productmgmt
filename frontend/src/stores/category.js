@@ -6,14 +6,22 @@ export const useCategoryStore = defineStore('category', {
         categories: [],
         loading: false,
         error: null,
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
     }),
     actions: {
-        async fetchCategories() {
+        async fetchCategories(params = {}) {
             this.loading = true;
             this.error = null;
             try {
-                const response = await api.get('/v1/categories');
+                const response = await api.get('/v1/categories', { params });
                 this.categories = response.data.data;
+                if (response.data.meta) {
+                    this.currentPage = response.data.meta.current_page;
+                    this.totalPages = response.data.meta.last_page;
+                    this.totalItems = response.data.meta.total;
+                }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Failed to load categories';
             } finally {
