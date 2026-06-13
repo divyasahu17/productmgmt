@@ -48,7 +48,7 @@
         </div>
         <div class="stat-info">
           <h3>Total Value</h3>
-          <p class="stat-value">$14,500</p>
+          <p class="stat-value">₹14,500</p>
         </div>
       </div>
     </div>
@@ -140,7 +140,7 @@ onMounted(async () => {
 });
 
 const stats = ref([
-  { title: 'Total Revenue', value: '$45,231.89', change: '+20.1%', positive: true, icon: '💵' },
+  { title: 'Total Revenue', value: '₹45,231.89', change: '+20.1%', positive: true, icon: '💵' },
   { title: 'Products Sold', value: '1,205', change: '+10.5%', positive: true, icon: '📦' },
   { title: 'Active Categories', value: '12', change: '0.0%', positive: true, icon: '📂' },
   { title: 'Total Customers', value: '842', change: '+5.2%', positive: true, icon: '👥' },

@@ -22,7 +22,7 @@
             class="category-card"
             @click="filterByCategory(category.id)"
           >
-            <div class="category-icon">📂</div>
+            <div class="category-icon">{{ getCategoryIcon(category.name) }}</div>
             <h3>{{ category.name }}</h3>
           </div>
           <div 
@@ -58,7 +58,7 @@
               <span class="category-tag" v-if="product.category">{{ product.category.name }}</span>
               <h3 class="product-name">{{ product.name }}</h3>
               <div class="product-footer">
-                <span class="product-price">${{ parseFloat(product.price).toFixed(2) }}</span>
+                <span class="product-price">₹{{ parseFloat(product.price).toFixed(2) }}</span>
                 <button class="add-to-cart-btn" @click.stop="addToCart(product)">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                 </button>
@@ -87,6 +87,22 @@ onMounted(async () => {
     marketplaceStore.fetchProducts()
   ]);
 });
+
+const getCategoryIcon = (name) => {
+  const icons = {
+    'Indian Spices & Masalas': '🌶️',
+    'Ethnic Wear': '👘',
+    'Ayurvedic & Herbal': '🌿',
+    'Indian Sweets & Mithai': '🍬',
+    'Handicrafts & Decor': '🏺',
+    'Tea & Beverages': '☕',
+    'Namkeen & Snacks': '🥨',
+    'Pooja Items': '🪔',
+    'Indian Books & Literature': '📚',
+    'Beauty & Personal Care': '🧴'
+  };
+  return icons[name] || '🛍️';
+};
 
 const currentCategoryName = computed(() => {
   if (!marketplaceStore.selectedCategory) return null;

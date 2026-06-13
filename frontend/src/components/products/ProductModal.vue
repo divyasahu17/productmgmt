@@ -33,7 +33,7 @@
             </div>
 
             <div class="form-group half-width">
-              <label for="price">Price ($) <span class="required">*</span></label>
+              <label for="price">Price (₹) <span class="required">*</span></label>
               <input 
                 type="number" 
                 id="price" 

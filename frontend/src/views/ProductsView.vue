@@ -49,7 +49,7 @@
               <td>
                 <span class="category-badge">{{ product.category?.name || '--' }}</span>
               </td>
-              <td class="fw-500">${{ product.price.toFixed(2) }}</td>
+              <td class="fw-500">₹{{ product.price.toFixed(2) }}</td>
               <td>
                 <span :class="['stock-badge', product.stock > 10 ? 'stock-good' : product.stock > 0 ? 'stock-low' : 'stock-out']">
                   {{ product.stock }} in stock

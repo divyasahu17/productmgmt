@@ -24,8 +24,8 @@
           <p class="product-sku">SKU: {{ marketplaceStore.currentProduct.slug }}</p>
           
           <div class="price-section">
-            <span class="price">${{ parseFloat(marketplaceStore.currentProduct.price).toFixed(2) }}</span>
-            <span class="stock-status" :class="marketplaceStore.currentProduct.stock > 0 ? 'in-stock' : 'out-of-stock'">
+            <span class="price">₹{{ parseFloat(marketplaceStore.currentProduct.price).toFixed(2) }}</span>
+            <span :class="['stock-badge', marketplaceStore.currentProduct.stock > 10 ? 'in-stock' : marketplaceStore.currentProduct.stock > 0 ? 'low-stock' : 'out-of-stock']">
               {{ marketplaceStore.currentProduct.stock > 0 ? 'In Stock' : 'Out of Stock' }}
             </span>
           </div>
