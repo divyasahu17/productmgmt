@@ -50,5 +50,8 @@ Route::prefix('v1')->group(function () {
 
         // Products
         Route::apiResource('products', \App\Http\Controllers\Api\V1\ProductController::class);
+
+        // Users
+        Route::get('/users', [\App\Http\Controllers\Api\V1\UserController::class, 'index']);
     });
 });
