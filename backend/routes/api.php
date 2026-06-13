@@ -20,9 +20,10 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
-    // Public Storefront routes
-    Route::get('/public/categories', [\App\Http\Controllers\Api\V1\StorefrontController::class, 'categories']);
-    Route::get('/public/products', [\App\Http\Controllers\Api\V1\StorefrontController::class, 'products']);
+    // Marketplace Public routes
+    Route::get('/marketplace/categories', [\App\Http\Controllers\Api\V1\MarketplaceController::class, 'categories']);
+    Route::get('/marketplace/products', [\App\Http\Controllers\Api\V1\MarketplaceController::class, 'products']);
+    Route::get('/marketplace/products/{id}', [\App\Http\Controllers\Api\V1\MarketplaceController::class, 'showProduct']);
 
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {

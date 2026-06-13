@@ -110,7 +110,7 @@
                 <p class="alert-text"><strong>{{ product.name }}</strong> is running low.</p>
                 <span class="alert-meta">Only {{ product.stock }} items left in stock</span>
               </div>
-              <button class="btn-sm" @click="$router.push('/products')">Restock</button>
+              <button class="btn-sm" @click="$router.push('/admin/products')">Restock</button>
             </li>
           </ul>
         </div>

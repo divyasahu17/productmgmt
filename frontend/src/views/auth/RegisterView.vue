@@ -49,7 +49,7 @@
           {{ authStore.loading ? 'Registering...' : 'Register' }}
         </button>
       </form>
-      <p>Already have an account? <router-link to="/login">Login here</router-link></p>
+      <p>Already have an account? <router-link to="/admin/login">Login here</router-link></p>
     </div>
   </div>
 </template>
@@ -75,7 +75,7 @@ const form = reactive({
 const handleRegister = async () => {
   const success = await authStore.register(form);
   if (success) {
-    router.push('/dashboard');
+    router.push('/admin/dashboard');
   }
 };
 

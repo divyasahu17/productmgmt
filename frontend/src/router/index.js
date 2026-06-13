@@ -4,12 +4,28 @@ import { useAuthStore } from '../stores/auth';
 const routes = [
     {
         path: '/',
+        component: () => import('../components/layout/MarketplaceLayout.vue'),
+        children: [
+            {
+                path: '',
+                name: 'Marketplace',
+                component: () => import('../views/marketplace/MarketplaceView.vue')
+            },
+            {
+                path: 'product/:id',
+                name: 'ProductDetail',
+                component: () => import('../views/marketplace/ProductDetailView.vue')
+            }
+        ]
+    },
+    {
+        path: '/admin',
         component: () => import('../components/layout/AdminLayout.vue'),
         meta: { requiresAuth: true },
         children: [
             {
                 path: '',
-                redirect: '/dashboard'
+                redirect: '/admin/dashboard'
             },
             {
                 path: 'dashboard',
@@ -39,13 +55,13 @@ const routes = [
         ]
     },
     {
-        path: '/login',
+        path: '/admin/login',
         name: 'Login',
         component: () => import('../views/auth/LoginView.vue'),
         meta: { guest: true }
     },
     {
-        path: '/register',
+        path: '/admin/register',
         name: 'Register',
         component: () => import('../views/auth/RegisterView.vue'),
         meta: { guest: true }
@@ -61,9 +77,9 @@ router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
     
     if (to.matched.some(record => record.meta.requiresAuth) && !authStore.isAuthenticated) {
-        next('/login');
+        next('/admin/login');
     } else if (to.matched.some(record => record.meta.guest) && authStore.isAuthenticated) {
-        next('/dashboard');
+        next('/admin/dashboard');
     } else {
         next();
     }

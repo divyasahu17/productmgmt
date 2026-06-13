@@ -12,7 +12,7 @@ onMounted(() => {
   // Listen for the global unauthorized event from Axios interceptor
   window.addEventListener('auth:unauthorized', () => {
     authStore.clearAuth();
-    window.location.href = '/login';
+    window.location.href = '/admin/login';
   });
   
   if (authStore.isAuthenticated && !authStore.user) {
