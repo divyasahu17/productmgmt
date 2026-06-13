@@ -15,13 +15,19 @@ const routes = [
                 path: 'product/:id',
                 name: 'ProductDetail',
                 component: () => import('../views/marketplace/ProductDetailView.vue')
+            },
+            {
+                path: 'profile',
+                name: 'UserProfile',
+                component: () => import('../views/marketplace/UserProfileView.vue'),
+                meta: { requiresAuth: true }
             }
         ]
     },
     {
         path: '/admin',
         component: () => import('../components/layout/AdminLayout.vue'),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, requiresAdmin: true },
         children: [
             {
                 path: '',
@@ -56,14 +62,21 @@ const routes = [
     },
     {
         path: '/admin/login',
-        name: 'Login',
+        name: 'AdminLogin',
         component: () => import('../views/auth/LoginView.vue'),
         meta: { guest: true }
     },
+
     {
-        path: '/admin/register',
-        name: 'Register',
-        component: () => import('../views/auth/RegisterView.vue'),
+        path: '/login',
+        name: 'UserLogin',
+        component: () => import('../views/auth/UserLoginView.vue'),
+        meta: { guest: true }
+    },
+    {
+        path: '/register',
+        name: 'UserRegister',
+        component: () => import('../views/auth/UserRegisterView.vue'),
         meta: { guest: true }
     }
 ];
@@ -73,13 +86,33 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
     
-    if (to.matched.some(record => record.meta.requiresAuth) && !authStore.isAuthenticated) {
-        next('/admin/login');
+    // Ensure we have user data if authenticated but user object is missing
+    if (authStore.isAuthenticated && !authStore.user) {
+        await authStore.fetchUser();
+    }
+    
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        if (!authStore.isAuthenticated) {
+            // Redirect to appropriate login page based on route
+            if (to.path.startsWith('/admin')) {
+                next('/admin/login');
+            } else {
+                next('/login');
+            }
+        } else if (to.matched.some(record => record.meta.requiresAdmin) && authStore.user?.role !== 'admin') {
+            next('/');
+        } else {
+            next();
+        }
     } else if (to.matched.some(record => record.meta.guest) && authStore.isAuthenticated) {
-        next('/admin/dashboard');
+        if (authStore.user?.role === 'admin') {
+            next('/admin/dashboard');
+        } else {
+            next('/');
+        }
     } else {
         next();
     }

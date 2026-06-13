@@ -53,10 +53,14 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useAuthStore } from '../../stores/auth';
+import { useRouter } from 'vue-router';
 import { useMarketplaceStore } from '../../stores/marketplace';
 
 const route = useRoute();
+const router = useRouter();
 const marketplaceStore = useMarketplaceStore();
+const authStore = useAuthStore();
 
 onMounted(async () => {
   const productId = route.params.id;
@@ -64,6 +68,10 @@ onMounted(async () => {
 });
 
 const addToCart = () => {
+  if (!authStore.isAuthenticated) {
+    router.push('/login');
+    return;
+  }
   if (marketplaceStore.currentProduct) {
     alert(`Added ${marketplaceStore.currentProduct.name} to cart!`);
   }

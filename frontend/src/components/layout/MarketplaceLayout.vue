@@ -12,8 +12,12 @@
           <a href="#featured" class="nav-link">Featured</a>
         </nav>
         <div class="nav-actions">
-          <router-link v-if="!authStore.isAuthenticated" to="/admin/login" class="login-btn">Login</router-link>
-          <router-link v-else to="/admin/dashboard" class="dashboard-btn">Dashboard</router-link>
+          <router-link v-if="!authStore.isAuthenticated" to="/login" class="login-btn">Login</router-link>
+          <template v-else>
+            <router-link to="/profile" class="user-greeting">Welcome, <span class="user-name">{{ authStore.user?.name || 'User' }}</span></router-link>
+            <router-link v-if="authStore.user?.role === 'admin'" to="/admin/dashboard" class="dashboard-btn">Dashboard</router-link>
+            <button @click="handleLogout" class="logout-btn">Logout</button>
+          </template>
         </div>
       </div>
     </header>
@@ -54,9 +58,16 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
+const router = useRouter();
 const isScrolled = ref(false);
+
+const handleLogout = async () => {
+  await authStore.logout();
+  router.push('/login');
+};
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 50;
@@ -167,6 +178,43 @@ onUnmounted(() => {
 .dashboard-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+}
+
+.user-greeting {
+  display: flex;
+  align-items: center;
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-right: 0.5rem;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.user-greeting:hover {
+  opacity: 0.8;
+}
+
+.user-greeting .user-name {
+  font-weight: 700;
+  color: #0f172a;
+  margin-left: 0.25rem;
+}
+
+.logout-btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background: #fecaca;
+  transform: translateY(-2px);
 }
 
 .marketplace-content {

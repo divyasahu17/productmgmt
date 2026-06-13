@@ -10,6 +10,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeUserMail;
 
 class AuthController extends Controller
 {
@@ -22,6 +24,9 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        // Send Welcome Email
+        Mail::to($user->email)->send(new WelcomeUserMail($user));
 
         return response()->json([
             'user' => new UserResource($user),

@@ -68,6 +68,49 @@ export const useAuthStore = defineStore('auth', {
                 this.clearAuth();
             }
         },
+        async updateProfile(profileData) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const response = await api.put('/v1/profile', profileData);
+                if (!response.data.requires_otp) {
+                    this.user = response.data.user;
+                }
+                return response.data;
+            } catch (err) {
+                this.error = err.response?.data?.errors || err.message;
+                return false;
+            } finally {
+                this.loading = false;
+            }
+        },
+        async verifyEmailOtp(otpData) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const response = await api.post('/v1/profile/email/verify', otpData);
+                this.user = response.data.user;
+                return true;
+            } catch (err) {
+                this.error = err.response?.data?.errors || err.message;
+                return false;
+            } finally {
+                this.loading = false;
+            }
+        },
+        async updatePassword(passwordData) {
+            this.loading = true;
+            this.error = null;
+            try {
+                await api.put('/v1/profile/password', passwordData);
+                return true;
+            } catch (err) {
+                this.error = err.response?.data?.errors || err.message;
+                return false;
+            } finally {
+                this.loading = false;
+            }
+        },
         setToken(token) {
             this.token = token;
             localStorage.setItem('token', token);

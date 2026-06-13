@@ -30,6 +30,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
         
+        // Profile Management
+        Route::put('/profile', [\App\Http\Controllers\Api\V1\ProfileController::class, 'updateProfile']);
+        Route::post('/profile/email/verify', [\App\Http\Controllers\Api\V1\ProfileController::class, 'verifyEmailOtp']);
+        Route::put('/profile/password', [\App\Http\Controllers\Api\V1\ProfileController::class, 'updatePassword']);
+        
         // Notifications
         Route::get('/notifications', [\App\Http\Controllers\Api\V1\NotificationController::class, 'index']);
         Route::put('/notifications/{id}/read', [\App\Http\Controllers\Api\V1\NotificationController::class, 'markAsRead']);

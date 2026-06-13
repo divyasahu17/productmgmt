@@ -74,9 +74,11 @@
 <script setup>
 import { onMounted, computed } from 'vue';
 import { useMarketplaceStore } from '../../stores/marketplace';
+import { useAuthStore } from '../../stores/auth';
 import { useRouter } from 'vue-router';
 
 const marketplaceStore = useMarketplaceStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 onMounted(async () => {
@@ -102,6 +104,10 @@ const scrollToFeatured = () => {
 };
 
 const addToCart = (product) => {
+  if (!authStore.isAuthenticated) {
+    router.push('/login');
+    return;
+  }
   // Simple alert for now
   alert(`Added ${product.name} to cart!`);
 };
