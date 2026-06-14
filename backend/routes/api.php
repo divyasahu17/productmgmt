@@ -37,6 +37,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/profile/email/verify', [\App\Http\Controllers\Api\V1\ProfileController::class, 'verifyEmailOtp']);
         Route::put('/profile/password', [\App\Http\Controllers\Api\V1\ProfileController::class, 'updatePassword']);
         
+        // Cart
+        Route::get('/cart', [\App\Http\Controllers\Api\V1\CartController::class, 'index']);
+        Route::post('/cart', [\App\Http\Controllers\Api\V1\CartController::class, 'store']);
+        Route::post('/cart/sync', [\App\Http\Controllers\Api\V1\CartController::class, 'sync']);
+        Route::delete('/cart/clear', [\App\Http\Controllers\Api\V1\CartController::class, 'clear']);
+        Route::delete('/cart/{productId}', [\App\Http\Controllers\Api\V1\CartController::class, 'destroy']);
+        
         // Notifications
         Route::get('/notifications', [\App\Http\Controllers\Api\V1\NotificationController::class, 'index']);
         Route::put('/notifications/{id}/read', [\App\Http\Controllers\Api\V1\NotificationController::class, 'markAsRead']);
