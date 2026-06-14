@@ -68,6 +68,18 @@
           </div>
 
           <div class="form-group">
+            <label for="image">Product Image <span style="font-weight: normal; color: #64748b; font-size: 0.8rem;">(Max 2MB, Optional)</span></label>
+            <input 
+              type="file" 
+              id="image" 
+              @change="handleFileChange"
+              accept="image/*"
+              class="file-input"
+            />
+            <span class="error" v-if="store.error?.image">{{ store.error.image[0] }}</span>
+          </div>
+
+          <div class="form-group">
             <label for="description">Description</label>
             <textarea 
               id="description" 
@@ -111,7 +123,8 @@ const form = ref({
   price: 0,
   stock: 0,
   description: '',
-  status: true
+  status: true,
+  image: null
 });
 
 onMounted(() => {
@@ -130,15 +143,28 @@ watch(() => props.isOpen, (newVal) => {
         price: props.product.price,
         stock: props.product.stock,
         description: props.product.description || '',
-        status: props.product.status
+        status: props.product.status,
+        image: null
       };
     } else {
       isEdit.value = false;
-      form.value = { name: '', category_id: '', price: 0, stock: 0, description: '', status: true };
+      form.value = { name: '', category_id: '', price: 0, stock: 0, description: '', status: true, image: null };
     }
+    // reset file input
+    const fileInput = document.getElementById('image');
+    if (fileInput) fileInput.value = '';
+    
     store.error = null;
   }
 });
+
+const handleFileChange = (e) => {
+  if (e.target.files.length > 0) {
+    form.value.image = e.target.files[0];
+  } else {
+    form.value.image = null;
+  }
+};
 
 const submitForm = async () => {
   let success;
@@ -250,6 +276,28 @@ input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: #4f46e5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.file-input {
+  padding: 0.5rem;
+  background-color: #f8fafc;
+  cursor: pointer;
+}
+
+.file-input::file-selector-button {
+  background-color: #e2e8f0;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 1rem;
+  font-weight: 500;
+  color: #475569;
+  transition: background-color 0.2s;
+}
+
+.file-input::file-selector-button:hover {
+  background-color: #cbd5e1;
 }
 
 .error {

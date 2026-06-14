@@ -8,8 +8,8 @@
         </router-link>
         <nav class="main-nav">
           <router-link to="/" class="nav-link">Home</router-link>
-          <a href="#categories" class="nav-link">Categories</a>
-          <a href="#featured" class="nav-link">Featured</a>
+          <a @click="scrollToSection('categories')" class="nav-link" style="cursor: pointer;">Categories</a>
+          <a @click="scrollToSection('featured')" class="nav-link" style="cursor: pointer;">Featured</a>
         </nav>
         <div class="nav-actions">
           <router-link v-if="!authStore.isAuthenticated" to="/login" class="login-btn">Login</router-link>
@@ -67,6 +67,17 @@ const isScrolled = ref(false);
 const handleLogout = async () => {
   await authStore.logout();
   router.push('/login');
+};
+
+const scrollToSection = async (sectionId) => {
+  if (router.currentRoute.value.path !== '/') {
+    await router.push('/');
+    setTimeout(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  } else {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+  }
 };
 
 const handleScroll = () => {

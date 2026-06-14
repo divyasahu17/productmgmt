@@ -17,6 +17,7 @@ class ProductResource extends JsonResource
             'stock' => (int) $this->stock,
             'status' => (bool) $this->status,
             'category_id' => $this->category_id,
+            'image_url' => $this->image ? asset('storage/' . $this->image) : null,
             'category' => new CategoryResource($this->whenLoaded('category')),
             'created_at' => $this->created_at->toISOString(),
             'updated_at' => $this->updated_at->toISOString(),

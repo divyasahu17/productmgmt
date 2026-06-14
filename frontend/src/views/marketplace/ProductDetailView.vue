@@ -11,7 +11,10 @@
       
       <div v-else class="product-content">
         <div class="product-image-side">
-          <div class="product-image-large">
+          <div v-if="marketplaceStore.currentProduct.image_url" class="product-image-container">
+            <img :src="marketplaceStore.currentProduct.image_url" alt="Product Image" class="product-image-large-img" />
+          </div>
+          <div v-else class="product-image-large">
             {{ marketplaceStore.currentProduct.name.charAt(0).toUpperCase() }}
           </div>
         </div>
@@ -127,6 +130,20 @@ const addToCart = () => {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.product-image-container {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.product-image-large-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .product-image-large {

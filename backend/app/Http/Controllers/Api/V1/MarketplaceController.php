@@ -7,10 +7,18 @@ use Illuminate\Http\Request;
 
 class MarketplaceController extends Controller
 {
-    public function categories()
+    public function categories(Request $request)
     {
-        $categories = \App\Models\Category::where('status', true)->get();
-        return response()->json(['data' => $categories]);
+        $perPage = $request->input('per_page', 8);
+        $categories = \App\Models\Category::where('status', true)->paginate($perPage);
+        return response()->json([
+            'data' => $categories->items(),
+            'meta' => [
+                'current_page' => $categories->currentPage(),
+                'last_page' => $categories->lastPage(),
+                'total' => $categories->total()
+            ]
+        ]);
     }
 
     public function products(Request $request)
@@ -21,13 +29,21 @@ class MarketplaceController extends Controller
             $query->where('category_id', $request->category_id);
         }
         
-        $products = $query->orderBy('created_at', 'desc')->get();
-        return response()->json(['data' => $products]);
+        $perPage = $request->input('per_page', 8);
+        $products = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        return response()->json([
+            'data' => \App\Http\Resources\ProductResource::collection($products),
+            'meta' => [
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'total' => $products->total()
+            ]
+        ]);
     }
 
     public function showProduct($id)
     {
         $product = \App\Models\Product::with('category')->where('status', true)->findOrFail($id);
-        return response()->json(['data' => $product]);
+        return response()->json(['data' => new \App\Http\Resources\ProductResource($product)]);
     }
 }

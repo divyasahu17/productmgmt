@@ -10,6 +10,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\User;
 use App\Notifications\LowStockNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Http\Request;
 
@@ -39,7 +40,13 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request)
     {
-        $product = Product::create($request->validated());
+        $data = $request->validated();
+        
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product = Product::create($data);
         
         if ($product->stock <= 5) {
             $admins = User::where('role', 'admin')->get();
@@ -56,7 +63,17 @@ class ProductController extends Controller
 
     public function update(UpdateProductRequest $request, Product $product)
     {
-        $product->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update($data);
 
         if ($product->stock <= 5) {
             $admins = User::where('role', 'admin')->get();
@@ -68,6 +85,9 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
         $product->delete();
         return response()->json(['message' => 'Product deleted successfully']);
     }

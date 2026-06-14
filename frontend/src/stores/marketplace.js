@@ -8,15 +8,25 @@ export const useMarketplaceStore = defineStore('marketplace', {
         currentProduct: null,
         loading: false,
         error: null,
-        selectedCategory: null
+        selectedCategory: null,
+        categoriesPage: 1,
+        categoriesLastPage: 1,
+        productsPage: 1,
+        productsLastPage: 1
     }),
     actions: {
-        async fetchCategories() {
+        async fetchCategories(page = 1) {
             this.loading = true;
             this.error = null;
             try {
-                const response = await api.get('/v1/marketplace/categories');
+                const response = await api.get('/v1/marketplace/categories', {
+                    params: { page }
+                });
                 this.categories = response.data.data;
+                if (response.data.meta) {
+                    this.categoriesPage = response.data.meta.current_page;
+                    this.categoriesLastPage = response.data.meta.last_page;
+                }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Failed to load categories';
                 console.error('Fetch categories error:', err);
@@ -24,17 +34,21 @@ export const useMarketplaceStore = defineStore('marketplace', {
                 this.loading = false;
             }
         },
-        async fetchProducts(categoryId = null) {
+        async fetchProducts(categoryId = null, page = 1) {
             this.loading = true;
             this.error = null;
             this.selectedCategory = categoryId;
             try {
-                let url = '/v1/marketplace/products';
+                const params = { page };
                 if (categoryId) {
-                    url += `?category_id=${categoryId}`;
+                    params.category_id = categoryId;
                 }
-                const response = await api.get(url);
+                const response = await api.get('/v1/marketplace/products', { params });
                 this.products = response.data.data;
+                if (response.data.meta) {
+                    this.productsPage = response.data.meta.current_page;
+                    this.productsLastPage = response.data.meta.last_page;
+                }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Failed to load products';
                 console.error('Fetch products error:', err);

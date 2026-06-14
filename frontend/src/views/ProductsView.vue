@@ -53,6 +53,7 @@
         <table class="data-table">
           <thead>
             <tr>
+              <th style="width: 50px">Image</th>
               <th>Name</th>
               <th>Category</th>
               <th>Price</th>
@@ -63,6 +64,12 @@
           </thead>
           <tbody>
             <tr v-for="product in store.products" :key="product.id">
+              <td>
+                <div class="product-thumb">
+                  <img v-if="product.image_url" :src="product.image_url" alt="product" />
+                  <div v-else class="thumb-placeholder">{{ product.name.charAt(0).toUpperCase() }}</div>
+                </div>
+              </td>
               <td>
                 <span class="fw-500">{{ product.name }}</span>
               </td>
@@ -421,6 +428,27 @@ const handleModalSaved = () => {
 }
 
 .fw-500 { font-weight: 500; color: #1e293b; }
+
+.product-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.thumb-placeholder {
+  font-weight: 600;
+  color: #64748b;
+  font-size: 1.1rem;
+}
 
 .category-badge {
   background-color: #f1f5f9;

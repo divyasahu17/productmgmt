@@ -32,7 +32,20 @@ export const useProductStore = defineStore('product', {
             this.loading = true;
             this.error = null;
             try {
-                const response = await api.post('/v1/products', productData);
+                const formData = new FormData();
+                for (const key in productData) {
+                    if (productData[key] !== null && productData[key] !== undefined) {
+                        if (typeof productData[key] === 'boolean') {
+                            formData.append(key, productData[key] ? 1 : 0);
+                        } else {
+                            formData.append(key, productData[key]);
+                        }
+                    }
+                }
+
+                const response = await api.post('/v1/products', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
                 this.products.unshift(response.data.data);
                 return true;
             } catch (err) {
@@ -46,7 +59,21 @@ export const useProductStore = defineStore('product', {
             this.loading = true;
             this.error = null;
             try {
-                const response = await api.put(`/v1/products/${id}`, productData);
+                const formData = new FormData();
+                formData.append('_method', 'PUT');
+                for (const key in productData) {
+                    if (productData[key] !== null && productData[key] !== undefined) {
+                        if (typeof productData[key] === 'boolean') {
+                            formData.append(key, productData[key] ? 1 : 0);
+                        } else {
+                            formData.append(key, productData[key]);
+                        }
+                    }
+                }
+
+                const response = await api.post(`/v1/products/${id}`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
                 const index = this.products.findIndex(p => p.id === id);
                 if (index !== -1) {
                     this.products[index] = response.data.data;

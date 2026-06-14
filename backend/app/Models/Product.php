@@ -9,7 +9,7 @@ class Product extends Model
 {
     use \Illuminate\Database\Eloquent\Factories\HasFactory;
 
-    protected $fillable = ['category_id', 'name', 'slug', 'description', 'price', 'stock', 'status'];
+    protected $fillable = ['category_id', 'name', 'slug', 'description', 'price', 'stock', 'status', 'image'];
 
     protected $casts = [
         'status' => 'boolean',

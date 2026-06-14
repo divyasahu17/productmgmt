@@ -33,6 +33,24 @@
             <h3>All Products</h3>
           </div>
         </div>
+        
+        <div v-if="marketplaceStore.categoriesLastPage > 1" class="marketplace-pagination">
+          <button 
+            :disabled="marketplaceStore.categoriesPage === 1" 
+            @click="changeCategoriesPage(marketplaceStore.categoriesPage - 1)"
+            class="page-btn"
+          >
+            Previous
+          </button>
+          <span class="page-info">Page {{ marketplaceStore.categoriesPage }} of {{ marketplaceStore.categoriesLastPage }}</span>
+          <button 
+            :disabled="marketplaceStore.categoriesPage === marketplaceStore.categoriesLastPage" 
+            @click="changeCategoriesPage(marketplaceStore.categoriesPage + 1)"
+            class="page-btn"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </section>
 
@@ -51,8 +69,11 @@
             class="product-card"
             @click="$router.push(`/product/${product.id}`)"
           >
-            <div class="product-image-placeholder">
-              {{ product.name.charAt(0).toUpperCase() }}
+            <div class="product-image-container">
+              <img v-if="product.image_url" :src="product.image_url" alt="product image" class="product-image" />
+              <div v-else class="product-image-placeholder">
+                {{ product.name.charAt(0).toUpperCase() }}
+              </div>
             </div>
             <div class="product-info">
               <span class="category-tag" v-if="product.category">{{ product.category.name }}</span>
@@ -65,6 +86,24 @@
               </div>
             </div>
           </div>
+        </div>
+        
+        <div v-if="marketplaceStore.productsLastPage > 1" class="marketplace-pagination">
+          <button 
+            :disabled="marketplaceStore.productsPage === 1" 
+            @click="changeProductsPage(marketplaceStore.productsPage - 1)"
+            class="page-btn"
+          >
+            Previous
+          </button>
+          <span class="page-info">Page {{ marketplaceStore.productsPage }} of {{ marketplaceStore.productsLastPage }}</span>
+          <button 
+            :disabled="marketplaceStore.productsPage === marketplaceStore.productsLastPage" 
+            @click="changeProductsPage(marketplaceStore.productsPage + 1)"
+            class="page-btn"
+          >
+            Next
+          </button>
         </div>
       </div>
     </section>
@@ -111,7 +150,17 @@ const currentCategoryName = computed(() => {
 });
 
 const filterByCategory = async (categoryId) => {
-  await marketplaceStore.fetchProducts(categoryId);
+  await marketplaceStore.fetchProducts(categoryId, 1);
+  document.getElementById('featured').scrollIntoView({ behavior: 'smooth' });
+};
+
+const changeCategoriesPage = async (page) => {
+  await marketplaceStore.fetchCategories(page);
+  document.getElementById('categories').scrollIntoView({ behavior: 'smooth' });
+};
+
+const changeProductsPage = async (page) => {
+  await marketplaceStore.fetchProducts(marketplaceStore.selectedCategory, page);
   document.getElementById('featured').scrollIntoView({ behavior: 'smooth' });
 };
 
@@ -283,8 +332,27 @@ h2 {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-.product-image-placeholder {
+.product-image-container {
   height: 250px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+.product-image-placeholder {
+  height: 100%;
+  width: 100%;
   background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
   display: flex;
   align-items: center;
@@ -368,6 +436,40 @@ h2 {
   padding: 3rem;
   color: #64748b;
   font-size: 1.125rem;
+}
+
+.marketplace-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 3rem;
+  gap: 1rem;
+}
+
+.page-btn {
+  padding: 0.5rem 1.25rem;
+  border: 1px solid #cbd5e1;
+  background: white;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: #64748b;
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {

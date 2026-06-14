@@ -21,6 +21,24 @@ const routes = [
                 name: 'UserProfile',
                 component: () => import('../views/marketplace/UserProfileView.vue'),
                 meta: { requiresAuth: true }
+            },
+            {
+                path: 'login',
+                name: 'UserLogin',
+                component: () => import('../views/auth/UserLoginView.vue'),
+                meta: { guest: true }
+            },
+            {
+                path: 'register',
+                name: 'UserRegister',
+                component: () => import('../views/auth/UserRegisterView.vue'),
+                meta: { guest: true }
+            },
+            {
+                path: 'forgot-password',
+                name: 'ForgotPassword',
+                component: () => import('../views/auth/ForgotPasswordView.vue'),
+                meta: { guest: true }
             }
         ]
     },
@@ -69,25 +87,6 @@ const routes = [
         path: '/admin/login',
         name: 'AdminLogin',
         component: () => import('../views/auth/LoginView.vue'),
-        meta: { guest: true }
-    },
-
-    {
-        path: '/login',
-        name: 'UserLogin',
-        component: () => import('../views/auth/UserLoginView.vue'),
-        meta: { guest: true }
-    },
-    {
-        path: '/register',
-        name: 'UserRegister',
-        component: () => import('../views/auth/UserRegisterView.vue'),
-        meta: { guest: true }
-    },
-    {
-        path: '/forgot-password',
-        name: 'ForgotPassword',
-        component: () => import('../views/auth/ForgotPasswordView.vue'),
         meta: { guest: true }
     }
 ];
