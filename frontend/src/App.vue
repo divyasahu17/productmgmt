@@ -1,10 +1,12 @@
 <template>
+  <Toast />
   <router-view></router-view>
 </template>
 
 <script setup>
 import { onMounted } from 'vue';
 import { useAuthStore } from './stores/auth';
+import Toast from './components/Toast.vue';
 
 const authStore = useAuthStore();
 
@@ -39,5 +41,28 @@ a {
 }
 a:hover {
   text-decoration: underline;
+}
+
+/* Global Spinner for Buttons */
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

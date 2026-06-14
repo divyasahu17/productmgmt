@@ -46,6 +46,7 @@
         </div>
 
         <button type="submit" class="submit-btn" :disabled="authStore.loading">
+          <span v-if="authStore.loading" class="spinner"></span>
           {{ authStore.loading ? 'Creating Account...' : 'Create Account' }}
         </button>
       </form>

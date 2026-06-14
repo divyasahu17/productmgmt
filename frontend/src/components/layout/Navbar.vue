@@ -73,12 +73,14 @@
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notification';
+import { useToastStore } from '../../stores/toast';
 import { useRouter } from 'vue-router';
 
 defineEmits(['toggleSidebar']);
 
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
+const toastStore = useToastStore();
 const router = useRouter();
 
 const isDropdownOpen = ref(false);
@@ -111,6 +113,7 @@ const markAllRead = async () => {
 
 const handleLogout = async () => {
   await authStore.logout();
+  toastStore.notify('Admin logged out successfully!');
   router.push('/admin/login');
 };
 </script>

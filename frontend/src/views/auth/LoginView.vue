@@ -29,6 +29,7 @@
         </div>
 
         <button type="submit" class="submit-btn" :disabled="authStore.loading">
+          <span v-if="authStore.loading" class="spinner"></span>
           {{ authStore.loading ? 'Logging in...' : 'Login' }}
         </button>
       </form>
@@ -39,9 +40,11 @@
 <script setup>
 import { reactive, onUnmounted, ref } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useToastStore } from '../../stores/toast';
 import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
+const toastStore = useToastStore();
 const router = useRouter();
 const showPassword = ref(false);
 
@@ -58,6 +61,7 @@ const handleLogin = async () => {
       await authStore.logout();
       return;
     }
+    toastStore.notify('Admin logged in successfully!');
     router.push('/admin/dashboard');
   }
 };

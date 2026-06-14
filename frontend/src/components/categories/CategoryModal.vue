@@ -43,7 +43,8 @@
           <div class="modal-footer">
             <button type="button" class="btn-cancel" @click="close" :disabled="store.loading">Cancel</button>
             <button type="submit" class="btn-save" :disabled="store.loading">
-              {{ store.loading ? 'Saving...' : 'Save Category' }}
+              <span v-if="store.loading" class="spinner"></span>
+              {{ isEdit ? 'Update Category' : 'Add Category' }}
             </button>
           </div>
         </form>

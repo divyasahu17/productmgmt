@@ -58,14 +58,17 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useToastStore } from '../../stores/toast';
 import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
+const toastStore = useToastStore();
 const router = useRouter();
 const isScrolled = ref(false);
 
 const handleLogout = async () => {
   await authStore.logout();
+  toastStore.notify('Logged out successfully!');
   router.push('/login');
 };
 

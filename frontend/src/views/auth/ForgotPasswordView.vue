@@ -22,7 +22,8 @@
         </div>
 
         <button type="submit" class="submit-btn" :disabled="authStore.loading">
-          {{ authStore.loading ? 'Sending...' : 'Send Reset Code' }}
+          <span v-if="authStore.loading" class="spinner"></span>
+          {{ authStore.loading ? 'Sending Link...' : 'Send Reset Link' }}
         </button>
 
         <div class="auth-links">
@@ -74,7 +75,8 @@
         </div>
 
         <button type="submit" class="submit-btn" :disabled="authStore.loading || successMessage !== ''">
-          {{ authStore.loading ? 'Resetting...' : 'Reset Password' }}
+          <span v-if="authStore.loading" class="spinner"></span>
+          {{ authStore.loading ? 'Resetting Password...' : 'Reset Password' }}
         </button>
 
         <div class="auth-links">
