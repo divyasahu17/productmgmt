@@ -19,22 +19,26 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $cacheKey = 'products_index_' . md5(json_encode($request->all()));
 
-        if ($request->has('search') && $request->search !== null && $request->search !== '') {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
+        $products = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($request) {
+            $query = Product::with('category');
 
-        if ($request->has('category_id') && $request->category_id !== null && $request->category_id !== '') {
-            $query->where('category_id', $request->category_id);
-        }
+            if ($request->has('search') && $request->search !== null && $request->search !== '') {
+                $query->where('name', 'like', '%' . $request->search . '%');
+            }
 
-        if ($request->has('status') && $request->status !== null && $request->status !== '') {
-            $query->where('status', $request->status);
-        }
+            if ($request->has('category_id') && $request->category_id !== null && $request->category_id !== '') {
+                $query->where('category_id', $request->category_id);
+            }
 
-        $perPage = $request->input('per_page', 10);
-        $products = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            if ($request->has('status') && $request->status !== null && $request->status !== '') {
+                $query->where('status', $request->status);
+            }
+
+            $perPage = $request->input('per_page', 10);
+            return $query->orderBy('created_at', 'desc')->paginate($perPage);
+        });
 
         return ProductResource::collection($products);
     }

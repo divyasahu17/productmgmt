@@ -17,13 +17,34 @@ api.interceptors.request.use(config => {
     return config;
 });
 
-// Response interceptor to handle 401s
+import { useToast } from 'vue-toastification';
+
+const toast = useToast();
+
+// Response interceptor to handle errors
 api.interceptors.response.use(
     response => response,
     error => {
-        if (error.response && error.response.status === 401) {
-            localStorage.removeItem('token');
-            window.dispatchEvent(new Event('auth:unauthorized'));
+        if (error.response) {
+            const status = error.response.status;
+            const message = error.response.data?.message || 'An error occurred';
+
+            if (status === 401) {
+                localStorage.removeItem('token');
+                window.dispatchEvent(new Event('auth:unauthorized'));
+                toast.error('Session expired. Please login again.');
+            } else if (status === 403) {
+                toast.error('Permission Denied.');
+            } else if (status === 422) {
+                // For validation errors, we might want to just show a generic message or let the component handle it
+                // toast.warning(message);
+            } else if (status >= 500) {
+                toast.error('Something went wrong on our end.');
+            } else {
+                toast.error(message);
+            }
+        } else {
+            toast.error('Network Error.');
         }
         return Promise.reject(error);
     }
