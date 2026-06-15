@@ -51,6 +51,7 @@ Route::prefix('v1')->group(function () {
 
         // Dashboard
         Route::get('/dashboard/low-stock', [\App\Http\Controllers\Api\V1\DashboardController::class, 'lowStock']);
+        Route::get('/dashboard/stats', [\App\Http\Controllers\Api\V1\DashboardController::class, 'stats']);
         
         // Categories
         Route::apiResource('categories', \App\Http\Controllers\Api\V1\CategoryController::class);

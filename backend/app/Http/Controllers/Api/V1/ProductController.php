@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Notifications\LowStockNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 use Illuminate\Http\Request;
 
@@ -53,6 +54,8 @@ class ProductController extends Controller
             Notification::send($admins, new LowStockNotification($product));
         }
 
+        Cache::flush();
+
         return new ProductResource($product->load('category'));
     }
 
@@ -80,6 +83,8 @@ class ProductController extends Controller
             Notification::send($admins, new LowStockNotification($product));
         }
 
+        Cache::flush();
+
         return new ProductResource($product->load('category'));
     }
 
@@ -89,6 +94,9 @@ class ProductController extends Controller
             Storage::disk('public')->delete($product->image);
         }
         $product->delete();
+        
+        Cache::flush();
+        
         return response()->json(['message' => 'Product deleted successfully']);
     }
 }

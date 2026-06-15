@@ -4,13 +4,20 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class MarketplaceController extends Controller
 {
     public function categories(Request $request)
     {
         $perPage = $request->input('per_page', 8);
-        $categories = \App\Models\Category::where('status', true)->paginate($perPage);
+        $page = $request->input('page', 1);
+        $cacheKey = "marketplace_categories_page_{$page}_limit_{$perPage}";
+
+        $categories = Cache::remember($cacheKey, 86400, function () use ($perPage) {
+            return \App\Models\Category::where('status', true)->paginate($perPage);
+        });
+
         return response()->json([
             'data' => $categories->items(),
             'meta' => [
@@ -23,14 +30,21 @@ class MarketplaceController extends Controller
 
     public function products(Request $request)
     {
-        $query = \App\Models\Product::with('category')->where('status', true);
-        
-        if ($request->has('category_id') && $request->category_id !== '') {
-            $query->where('category_id', $request->category_id);
-        }
-        
+        $categoryId = $request->input('category_id', 'all');
         $perPage = $request->input('per_page', 8);
-        $products = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        $page = $request->input('page', 1);
+        $cacheKey = "marketplace_products_cat_{$categoryId}_page_{$page}_limit_{$perPage}";
+
+        $products = Cache::remember($cacheKey, 86400, function () use ($categoryId, $perPage, $request) {
+            $query = \App\Models\Product::with('category')->where('status', true);
+            
+            if ($categoryId !== 'all') {
+                $query->where('category_id', $categoryId);
+            }
+            
+            return $query->orderBy('created_at', 'desc')->paginate($perPage);
+        });
+
         return response()->json([
             'data' => \App\Http\Resources\ProductResource::collection($products),
             'meta' => [
@@ -43,7 +57,11 @@ class MarketplaceController extends Controller
 
     public function showProduct($id)
     {
-        $product = \App\Models\Product::with('category')->where('status', true)->findOrFail($id);
+        $cacheKey = "marketplace_product_{$id}";
+        $product = Cache::remember($cacheKey, 86400, function () use ($id) {
+            return \App\Models\Product::with('category')->where('status', true)->findOrFail($id);
+        });
+        
         return response()->json(['data' => new \App\Http\Resources\ProductResource($product)]);
     }
 }
