@@ -8,7 +8,6 @@ use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
@@ -33,7 +32,6 @@ class CategoryController extends Controller
     public function store(StoreCategoryRequest $request)
     {
         $category = Category::create($request->validated());
-        Cache::flush();
         return new CategoryResource($category);
     }
 
@@ -45,14 +43,12 @@ class CategoryController extends Controller
     public function update(UpdateCategoryRequest $request, Category $category)
     {
         $category->update($request->validated());
-        Cache::flush();
         return new CategoryResource($category);
     }
 
     public function destroy(Category $category)
     {
         $category->delete();
-        Cache::flush();
         return response()->json(['message' => 'Category deleted successfully']);
     }
 }

@@ -2,148 +2,117 @@ import { defineStore } from 'pinia';
 import api from '../services/api';
 
 export const useCartStore = defineStore('cart', {
-  state: () => ({
-    items: JSON.parse(localStorage.getItem('cartItems')) || [],
-    isOpen: false,
-    loading: false,
-  }),
-  getters: {
-    totalItems: (state) => {
-      return state.items.reduce((total, item) => total + item.quantity, 0);
+    state: () => ({
+        items: [],
+        loading: false,
+        error: null,
+        isOpen: false, // For sidebar
+    }),
+
+    getters: {
+        totalItems: (state) => state.items.reduce((total, item) => total + item.quantity, 0),
+        totalPrice: (state) => state.items.reduce((total, item) => total + (item.quantity * item.product.price), 0),
     },
-    cartTotalAmount: (state) => {
-      return state.items.reduce((total, item) => total + (parseFloat(item.product.price) * item.quantity), 0);
-    }
-  },
-  actions: {
-    toggleCart() {
-      this.isOpen = !this.isOpen;
-    },
-    async fetchCart() {
-      const { useAuthStore } = await import('./auth');
-      const authStore = useAuthStore();
-      if (!authStore.isAuthenticated) return;
-      this.loading = true;
-      try {
-        const response = await api.get('/v1/cart');
-        this.items = response.data;
-        this.saveLocalCart();
-      } catch (err) {
-        console.error('Failed to fetch cart', err);
-      } finally {
-        this.loading = false;
-      }
-    },
-    async syncCart() {
-      const { useAuthStore } = await import('./auth');
-      const authStore = useAuthStore();
-      if (!authStore.isAuthenticated) return;
-      
-      const localItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-      if (localItems.length > 0) {
-        try {
-          const payload = {
-            items: localItems.map(item => ({
-              product_id: item.product.id,
-              quantity: item.quantity
-            }))
-          };
-          const response = await api.post('/v1/cart/sync', payload);
-          this.items = response.data;
-        } catch (err) {
-          console.error('Failed to sync cart', err);
-        }
-      } else {
-        await this.fetchCart();
-      }
-      this.saveLocalCart();
-    },
-    async addToCart(product, quantity = 1) {
-      const existingItem = this.items.find(item => item.product.id === product.id);
-      
-      if (existingItem) {
-        existingItem.quantity += quantity;
-      } else {
-        this.items.push({
-          product: product,
-          quantity: quantity
-        });
-      }
-      
-      const { useAuthStore } = await import('./auth');
-      const authStore = useAuthStore();
-      if (authStore.isAuthenticated) {
-        try {
-          const currentItem = this.items.find(item => item.product.id === product.id);
-          await api.post('/v1/cart', {
-            product_id: product.id,
-            quantity: currentItem.quantity
-          });
-        } catch(err) {
-          console.error(err);
-        }
-      } else {
-        this.saveLocalCart();
-      }
-    },
-    async removeFromCart(productId) {
-      this.items = this.items.filter(item => item.product.id !== productId);
-      
-      const { useAuthStore } = await import('./auth');
-      const authStore = useAuthStore();
-      if (authStore.isAuthenticated) {
-        try {
-          await api.delete(`/v1/cart/${productId}`);
-        } catch(err) {
-          console.error(err);
-        }
-      } else {
-        this.saveLocalCart();
-      }
-    },
-    async updateQuantity(productId, quantity) {
-      const item = this.items.find(item => item.product.id === productId);
-      if (item) {
-        item.quantity = quantity;
-        if (item.quantity <= 0) {
-          await this.removeFromCart(productId);
-        } else {
-          const { useAuthStore } = await import('./auth');
-          const authStore = useAuthStore();
-          if (authStore.isAuthenticated) {
+
+    actions: {
+        toggleSidebar() {
+            this.isOpen = !this.isOpen;
+        },
+        
+        async fetchCart() {
+            this.loading = true;
+            this.error = null;
             try {
-              await api.post('/v1/cart', {
-                product_id: productId,
-                quantity: item.quantity
-              });
-            } catch(err) {
-              console.error(err);
+                const response = await api.get('/v1/cart');
+                this.items = response.data;
+            } catch (error) {
+                this.error = error.response?.data?.message || 'Failed to fetch cart';
+                console.error(error);
+            } finally {
+                this.loading = false;
             }
-          } else {
-            this.saveLocalCart();
-          }
+        },
+
+        async addToCart(productId, quantity = 1) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const response = await api.post('/v1/cart', {
+                    product_id: productId,
+                    quantity: quantity
+                });
+                // If item exists, update it. Else push new.
+                const index = this.items.findIndex(i => i.product_id === productId);
+                if (index !== -1) {
+                    this.items[index] = response.data;
+                } else {
+                    this.items.push(response.data);
+                }
+                this.isOpen = true; // Auto open sidebar
+                return true;
+            } catch (error) {
+                this.error = error.response?.data?.message || 'Failed to add to cart';
+                import('./toast').then(({ useToastStore }) => {
+                    useToastStore().notify(this.error, 'error');
+                });
+                return false;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async updateQuantity(cartId, quantity) {
+            if (quantity < 1) return this.removeFromCart(cartId);
+            
+            this.loading = true;
+            this.error = null;
+            try {
+                const response = await api.put(`/v1/cart/${cartId}`, { quantity });
+                const index = this.items.findIndex(i => i.id === cartId);
+                if (index !== -1) {
+                    this.items[index] = response.data;
+                }
+            } catch (error) {
+                this.error = error.response?.data?.message || 'Failed to update quantity';
+                import('./toast').then(({ useToastStore }) => {
+                    useToastStore().notify(this.error, 'error');
+                });
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async removeFromCart(cartId) {
+            this.loading = true;
+            this.error = null;
+            try {
+                await api.delete(`/v1/cart/${cartId}`);
+                this.items = this.items.filter(i => i.id !== cartId);
+            } catch (error) {
+                this.error = error.response?.data?.message || 'Failed to remove item';
+                console.error(error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async clearCart() {
+            this.loading = true;
+            try {
+                await api.delete('/v1/cart');
+                this.items = [];
+            } catch (error) {
+                console.error(error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        // Called on logout
+        resetState() {
+            this.items = [];
+            this.isOpen = false;
+            this.error = null;
         }
-      }
-    },
-    async clearCart() {
-      this.items = [];
-      const { useAuthStore } = await import('./auth');
-      const authStore = useAuthStore();
-      if (authStore.isAuthenticated) {
-        try {
-          await api.delete('/v1/cart/clear');
-        } catch(err) {
-          console.error(err);
-        }
-      }
-      this.saveLocalCart();
-    },
-    saveLocalCart() {
-      localStorage.setItem('cartItems', JSON.stringify(this.items));
-    },
-    clearLocalOnly() {
-        this.items = [];
-        localStorage.removeItem('cartItems');
     }
-  }
 });

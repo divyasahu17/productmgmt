@@ -69,6 +69,12 @@
 
           <div class="form-group">
             <label for="image">Product Image <span style="font-weight: normal; color: #64748b; font-size: 0.8rem;">(Max 2MB, Optional)</span></label>
+            
+            <div v-if="isEdit && product?.image_url" class="current-image-preview">
+              <img :src="product.image_url" alt="Current product image" />
+              <p>Current Image</p>
+            </div>
+
             <input 
               type="file" 
               id="image" 
@@ -277,6 +283,22 @@ input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: #4f46e5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.current-image-preview {
+  margin-bottom: 1rem;
+}
+.current-image-preview img {
+  max-width: 150px;
+  max-height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+}
+.current-image-preview p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
 }
 
 .file-input {

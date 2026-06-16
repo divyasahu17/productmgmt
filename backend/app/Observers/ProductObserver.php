@@ -25,13 +25,7 @@ class ProductObserver
      */
     public function updated(Product $product): void
     {
-        // Check if stock was updated and is below threshold (e.g., 5)
-        if ($product->wasChanged('stock') && $product->stock <= 5) {
-            // Find admin users (for now, any user since it's a simple setup)
-            $users = \App\Models\User::all();
-            
-            \Illuminate\Support\Facades\Notification::send($users, new \App\Notifications\LowStockNotification($product));
-        }
+        //
     }
 
     /**

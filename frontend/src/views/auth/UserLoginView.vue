@@ -58,7 +58,8 @@ const form = reactive({
 });
 
 const handleLogin = async () => {
-  const success = await authStore.login(form);
+  const loginData = { ...form, login_type: 'user' };
+  const success = await authStore.login(loginData);
   if (success) {
     toastStore.notify('Logged in successfully!');
     router.push('/');

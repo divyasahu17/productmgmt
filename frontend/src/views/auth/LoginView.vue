@@ -54,7 +54,8 @@ const form = reactive({
 });
 
 const handleLogin = async () => {
-  const success = await authStore.login(form);
+  const loginData = { ...form, login_type: 'admin' };
+  const success = await authStore.login(loginData);
   if (success) {
     if (authStore.user?.role !== 'admin') {
       authStore.error = 'Invalid credentials.';

@@ -17,12 +17,10 @@ use App\Http\Controllers\Api\V1\AuthController;
 
 Route::prefix('v1')->group(function () {
     // Public routes
-    Route::middleware('throttle:5,1')->group(function () {
-        Route::post('/register', [AuthController::class, 'register']);
-        Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/forgot-password', [\App\Http\Controllers\Api\V1\PasswordResetController::class, 'sendResetOtp']);
-        Route::post('/reset-password', [\App\Http\Controllers\Api\V1\PasswordResetController::class, 'verifyOtpAndReset']);
-    });
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [\App\Http\Controllers\Api\V1\PasswordResetController::class, 'sendResetOtp']);
+    Route::post('/reset-password', [\App\Http\Controllers\Api\V1\PasswordResetController::class, 'verifyOtpAndReset']);
 
     // Marketplace Public routes
     Route::get('/marketplace/categories', [\App\Http\Controllers\Api\V1\MarketplaceController::class, 'categories']);
@@ -39,13 +37,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/profile/email/verify', [\App\Http\Controllers\Api\V1\ProfileController::class, 'verifyEmailOtp']);
         Route::put('/profile/password', [\App\Http\Controllers\Api\V1\ProfileController::class, 'updatePassword']);
         
-        // Cart
-        Route::get('/cart', [\App\Http\Controllers\Api\V1\CartController::class, 'index']);
-        Route::post('/cart', [\App\Http\Controllers\Api\V1\CartController::class, 'store']);
-        Route::post('/cart/sync', [\App\Http\Controllers\Api\V1\CartController::class, 'sync']);
-        Route::delete('/cart/clear', [\App\Http\Controllers\Api\V1\CartController::class, 'clear']);
-        Route::delete('/cart/{productId}', [\App\Http\Controllers\Api\V1\CartController::class, 'destroy']);
-        
         // Notifications
         Route::get('/notifications', [\App\Http\Controllers\Api\V1\NotificationController::class, 'index']);
         Route::put('/notifications/{id}/read', [\App\Http\Controllers\Api\V1\NotificationController::class, 'markAsRead']);
@@ -53,8 +44,15 @@ Route::prefix('v1')->group(function () {
 
         // Dashboard
         Route::get('/dashboard/low-stock', [\App\Http\Controllers\Api\V1\DashboardController::class, 'lowStock']);
-        Route::get('/dashboard/stats', [\App\Http\Controllers\Api\V1\DashboardController::class, 'stats']);
+        Route::get('/dashboard/chart-data', [\App\Http\Controllers\Api\V1\DashboardController::class, 'chartData']);
         
+        // Cart
+        Route::get('/cart', [\App\Http\Controllers\Api\V1\CartController::class, 'index']);
+        Route::post('/cart', [\App\Http\Controllers\Api\V1\CartController::class, 'store']);
+        Route::put('/cart/{id}', [\App\Http\Controllers\Api\V1\CartController::class, 'update']);
+        Route::delete('/cart/{id}', [\App\Http\Controllers\Api\V1\CartController::class, 'destroy']);
+        Route::delete('/cart', [\App\Http\Controllers\Api\V1\CartController::class, 'clear']);
+
         // Categories
         Route::apiResource('categories', \App\Http\Controllers\Api\V1\CategoryController::class);
 

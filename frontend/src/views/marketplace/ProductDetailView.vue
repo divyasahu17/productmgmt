@@ -39,14 +39,6 @@
           </div>
           
           <div class="actions-section">
-            <div class="quantity-wrapper" v-if="marketplaceStore.currentProduct.stock > 0">
-              <label>Quantity</label>
-              <div class="quantity-selector">
-                <button @click="quantity > 1 && quantity--" class="qty-btn">-</button>
-                <input type="number" v-model.number="quantity" min="1" :max="marketplaceStore.currentProduct.stock" class="qty-input" />
-                <button @click="quantity < marketplaceStore.currentProduct.stock && quantity++" class="qty-btn">+</button>
-              </div>
-            </div>
             <button 
               class="add-to-cart-btn" 
               :disabled="marketplaceStore.currentProduct.stock <= 0"
@@ -62,32 +54,30 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
-import { useMarketplaceStore } from '../../stores/marketplace';
 import { useCartStore } from '../../stores/cart';
-import { useToastStore } from '../../stores/toast';
+import { useMarketplaceStore } from '../../stores/marketplace';
 
 const route = useRoute();
 const router = useRouter();
 const marketplaceStore = useMarketplaceStore();
 const authStore = useAuthStore();
 const cartStore = useCartStore();
-const toastStore = useToastStore();
-
-const quantity = ref(1);
 
 onMounted(async () => {
   const productId = route.params.id;
   await marketplaceStore.fetchProduct(productId);
 });
 
-const addToCart = () => {
+const addToCart = async () => {
+  if (!authStore.isAuthenticated) {
+    router.push('/login');
+    return;
+  }
   if (marketplaceStore.currentProduct) {
-    cartStore.addToCart(marketplaceStore.currentProduct, quantity.value);
-    toastStore.notify(`Added ${quantity.value} ${marketplaceStore.currentProduct.name} to cart!`, 'success');
-    cartStore.isOpen = true;
+    await cartStore.addToCart(marketplaceStore.currentProduct.id, 1);
   }
 };
 </script>
@@ -252,63 +242,6 @@ const addToCart = () => {
 
 .actions-section {
   margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.quantity-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.quantity-wrapper label {
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.quantity-selector {
-  display: flex;
-  align-items: center;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  overflow: hidden;
-  height: 48px;
-}
-
-.qty-btn {
-  background: #f8fafc;
-  border: none;
-  width: 48px;
-  height: 100%;
-  font-size: 1.25rem;
-  color: #475569;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.qty-btn:hover {
-  background: #e2e8f0;
-}
-
-.qty-input {
-  width: 60px;
-  height: 100%;
-  border: none;
-  border-left: 1px solid #cbd5e1;
-  border-right: 1px solid #cbd5e1;
-  text-align: center;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #0f172a;
-  -moz-appearance: textfield;
-}
-
-.qty-input::-webkit-outer-spin-button,
-.qty-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
 }
 
 .add-to-cart-btn {

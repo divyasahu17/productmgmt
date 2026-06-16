@@ -115,13 +115,11 @@ import { onMounted, computed } from 'vue';
 import { useMarketplaceStore } from '../../stores/marketplace';
 import { useAuthStore } from '../../stores/auth';
 import { useCartStore } from '../../stores/cart';
-import { useToastStore } from '../../stores/toast';
 import { useRouter } from 'vue-router';
 
 const marketplaceStore = useMarketplaceStore();
 const authStore = useAuthStore();
 const cartStore = useCartStore();
-const toastStore = useToastStore();
 const router = useRouter();
 
 onMounted(async () => {
@@ -172,10 +170,12 @@ const scrollToFeatured = () => {
   document.getElementById('featured').scrollIntoView({ behavior: 'smooth' });
 };
 
-const addToCart = (product) => {
-  cartStore.addToCart(product);
-  toastStore.notify(`Added ${product.name} to cart!`, 'success');
-  cartStore.isOpen = true; // Open the cart drawer
+const addToCart = async (product) => {
+  if (!authStore.isAuthenticated) {
+    router.push('/login');
+    return;
+  }
+  await cartStore.addToCart(product.id, 1);
 };
 </script>
 

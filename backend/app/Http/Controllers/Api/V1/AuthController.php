@@ -44,6 +44,19 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($request->has('login_type')) {
+            if ($request->login_type === 'admin' && $user->role !== 'admin') {
+                throw ValidationException::withMessages([
+                    'email' => ['The provided credentials are incorrect.'],
+                ]);
+            }
+            if ($request->login_type === 'user' && $user->role === 'admin') {
+                throw ValidationException::withMessages([
+                    'email' => ['The provided credentials are incorrect.'],
+                ]);
+            }
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

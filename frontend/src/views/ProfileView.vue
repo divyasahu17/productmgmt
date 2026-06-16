@@ -207,6 +207,11 @@ const handlePasswordUpdate = async () => {
 </script>
 
 <style scoped>
+.input-wrapper { position: relative; display: flex; align-items: center; }
+.input-wrapper input { padding-right: 2.5rem; }
+.eye-btn { position: absolute; right: 0.5rem; background: transparent; border: none; color: #64748b; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; }
+.eye-btn svg { width: 20px; height: 20px; }
+
 .page-container {
   display: flex;
   flex-direction: column;
@@ -369,5 +374,3 @@ const handlePasswordUpdate = async () => {
   color: #0f172a;
 }
 </style>
-
-.input-wrapper { position: relative; display: flex; align-items: center; } .input-wrapper input { padding-right: 2.5rem; } .eye-btn { position: absolute; right: 0.5rem; background: transparent; border: none; color: #64748b; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; } .eye-btn svg { width: 20px; height: 20px; }

@@ -18,7 +18,7 @@
         </div>
         <div class="stat-info">
           <h3>Total Products</h3>
-          <p class="stat-value">{{ statsData.total_products }}</p>
+          <p class="stat-value">124</p>
         </div>
       </div>
       
@@ -28,7 +28,7 @@
         </div>
         <div class="stat-info">
           <h3>Categories</h3>
-          <p class="stat-value">{{ statsData.total_categories }}</p>
+          <p class="stat-value">12</p>
         </div>
       </div>
 
@@ -37,8 +37,8 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
         </div>
         <div class="stat-info">
-          <h3>Low Stock Items</h3>
-          <p class="stat-value">{{ statsData.low_stock_count }}</p>
+          <h3>Low Stock</h3>
+          <p class="stat-value">5</p>
         </div>
       </div>
 
@@ -47,41 +47,40 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
         <div class="stat-info">
-          <h3>Inventory Value</h3>
-          <p class="stat-value">₹{{ Number(statsData.total_value).toLocaleString() }}</p>
+          <h3>Total Value</h3>
+          <p class="stat-value">₹14,500</p>
         </div>
       </div>
     </div>
 
     <!-- Main Dashboard Areas -->
     <div class="dashboard-grid">
-      <!-- Charts Area -->
-      <div class="charts-container">
-        <div class="card chart-card">
-          <div class="card-header">
-            <h2>Products by Category</h2>
-          </div>
-          <div class="card-body chart-body">
-            <Bar v-if="statsData.chart_data.length" :data="barChartData" :options="barChartOptions" />
-            <div v-else class="chart-loading">
-              Loading chart data...
-            </div>
-          </div>
+      <!-- Chart Activity -->
+      <div class="card recent-activity" style="display: flex; flex-direction: column;">
+        <div class="card-header">
+          <h2>Products by Category</h2>
         </div>
-
-        <div class="card chart-card">
-          <div class="card-header">
-            <h2>Product Status Overview</h2>
-          </div>
-          <div class="card-body chart-body" style="display: flex; justify-content: center;">
-            <Doughnut v-if="statsData.status_data" :data="doughnutChartData" :options="doughnutOptions" />
-            <div v-else class="chart-loading">
-              Loading chart data...
-            </div>
-          </div>
+        <div class="card-body" style="height: 300px; flex: 1;">
+          <div v-if="loadingChart" style="text-align: center; color: #64748b; padding-top: 50px;">Loading chart...</div>
+          <Bar v-else-if="categoryChartData" :data="categoryChartData" :options="chartOptions" />
+          <div v-else style="text-align: center; color: #64748b; padding-top: 50px;">No chart data available.</div>
         </div>
       </div>
 
+      <!-- Status Chart -->
+      <div class="card recent-activity" style="display: flex; flex-direction: column;">
+        <div class="card-header">
+          <h2>Product Status</h2>
+        </div>
+        <div class="card-body" style="height: 300px; flex: 1; display: flex; justify-content: center;">
+          <div v-if="loadingChart" style="text-align: center; color: #64748b; padding-top: 50px;">Loading chart...</div>
+          <Doughnut v-else-if="statusChartData" :data="statusChartData" :options="doughnutOptions" />
+          <div v-else style="text-align: center; color: #64748b; padding-top: 50px;">No chart data available.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid" style="margin-top: 1.5rem;">
       <!-- Low Stock Alerts -->
       <div class="card alerts-card">
         <div class="card-header">
@@ -108,136 +107,85 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import api from '../services/api';
-import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  ArcElement
-} from 'chart.js'
-import { Bar, Doughnut } from 'vue-chartjs'
+import { Bar, Doughnut } from 'vue-chartjs';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend)
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement);
 
 const authStore = useAuthStore();
 const lowStockProducts = ref([]);
 const loadingLowStock = ref(true);
 
-const statsData = ref({
-  total_products: 0,
-  total_categories: 0,
-  low_stock_count: 0,
-  total_value: 0,
-  chart_data: [],
-  status_data: null
-});
-
-// Bar Chart
-const barChartOptions = {
+const categoryChartData = ref(null);
+const statusChartData = ref(null);
+const loadingChart = ref(true);
+const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: { display: false },
-    tooltip: {
-      backgroundColor: 'rgba(15, 23, 42, 0.9)',
-      padding: 12,
-      titleFont: { size: 14, weight: 'bold' },
-      bodyFont: { size: 13 },
-      displayColors: false,
-      cornerRadius: 8
-    }
-  },
-  scales: {
-    y: {
-      beginAtZero: true,
-      grid: { color: '#f1f5f9', drawBorder: false },
-      border: { display: false }
-    },
-    x: {
-      grid: { display: false },
-      border: { display: false }
-    }
+    legend: { display: false }
   }
-}
-
-const barChartData = computed(() => {
-  return {
-    labels: statsData.value.chart_data.map(d => d.label),
-    datasets: [
-      {
-        label: 'Products',
-        backgroundColor: '#4f46e5',
-        hoverBackgroundColor: '#3b82f6',
-        borderRadius: 8,
-        borderSkipped: false,
-        data: statsData.value.chart_data.map(d => d.count),
-        barThickness: 32
-      }
-    ]
-  }
-})
-
-// Doughnut Chart
+};
 const doughnutOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: {
-      position: 'bottom',
-      labels: {
-        padding: 20,
-        usePointStyle: true,
-        pointStyle: 'circle',
-        font: { size: 13, family: "'Inter', sans-serif" }
-      }
-    },
-    tooltip: {
-      backgroundColor: 'rgba(15, 23, 42, 0.9)',
-      padding: 12,
-      cornerRadius: 8
-    }
-  },
-  cutout: '75%',
-  animation: { animateScale: true, animateRotate: true }
-}
-
-const doughnutChartData = computed(() => {
-  if (!statsData.value.status_data) return { datasets: [] };
-  return {
-    labels: ['Active Products', 'Inactive Products'],
-    datasets: [
-      {
-        data: [statsData.value.status_data.active, statsData.value.status_data.inactive],
-        backgroundColor: ['#10b981', '#f43f5e'],
-        hoverBackgroundColor: ['#059669', '#e11d48'],
-        borderWidth: 0,
-        hoverOffset: 6
-      }
-    ]
+    legend: { position: 'bottom' }
   }
-})
+};
 
 onMounted(async () => {
+  // Fetch low stock
   try {
-    const [lowStockRes, statsRes] = await Promise.all([
-      api.get('/v1/dashboard/low-stock'),
-      api.get('/v1/dashboard/stats')
-    ]);
-    
-    lowStockProducts.value = lowStockRes.data.data;
-    statsData.value = statsRes.data.data;
+    const response = await api.get('/v1/dashboard/low-stock');
+    lowStockProducts.value = response.data.data;
   } catch (error) {
-    console.error('Failed to load dashboard data', error);
+    console.error('Failed to load low stock products', error);
   } finally {
     loadingLowStock.value = false;
   }
+
+  // Fetch chart data
+  try {
+    const response = await api.get('/v1/dashboard/chart-data');
+    
+    // Category Chart Data
+    categoryChartData.value = {
+      labels: response.data.categories.labels,
+      datasets: [{
+        label: 'Products',
+        data: response.data.categories.data,
+        backgroundColor: '#4f46e5',
+        borderRadius: 4
+      }]
+    };
+
+    // Status Chart Data
+    statusChartData.value = {
+      labels: ['Active', 'Inactive'],
+      datasets: [{
+        data: [response.data.status.active, response.data.status.inactive],
+        backgroundColor: ['#22c55e', '#ef4444'],
+        hoverBackgroundColor: ['#16a34a', '#dc2626'],
+        borderWidth: 0
+      }]
+    };
+  } catch (error) {
+    console.error('Failed to load chart data', error);
+  } finally {
+    loadingChart.value = false;
+  }
 });
+
+const stats = ref([
+  { title: 'Total Revenue', value: '₹45,231.89', change: '+20.1%', positive: true, icon: '💵' },
+  { title: 'Products Sold', value: '1,205', change: '+10.5%', positive: true, icon: '📦' },
+  { title: 'Active Categories', value: '12', change: '0.0%', positive: true, icon: '📂' },
+  { title: 'Total Customers', value: '842', change: '+5.2%', positive: true, icon: '👥' },
+]);
 </script>
 
 <style scoped>
@@ -343,31 +291,11 @@ onMounted(async () => {
   color: #0f172a;
 }
 
-/* Charts Container */
-.charts-container {
+/* Dashboard Grid */
+.dashboard-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 1.5rem;
-}
-
-.chart-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.chart-body {
-  height: 350px;
-  position: relative;
-  padding-bottom: 2rem;
-}
-
-.chart-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #64748b;
-  font-weight: 500;
 }
 
 .card {
@@ -513,9 +441,6 @@ onMounted(async () => {
 
 @media (max-width: 1024px) {
   .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-  .charts-container {
     grid-template-columns: 1fr;
   }
 }

@@ -11,54 +11,50 @@ class DashboardController extends Controller
 {
     public function lowStock()
     {
-        // Fetch products with stock <= 5
-        $lowStockProducts = Product::where('stock', '<=', 5)
-            ->with('category')
-            ->orderBy('stock', 'asc')
-            ->take(5)
-            ->get();
+        $lowStockProducts = \Illuminate\Support\Facades\Cache::remember('dashboard_low_stock', 300, function () {
+            return Product::where('stock', '<=', 5)
+                ->with('category')
+                ->orderBy('stock', 'asc')
+                ->take(5)
+                ->get();
+        });
 
         return response()->json([
             'data' => $lowStockProducts
         ]);
     }
 
-    public function stats()
+    public function chartData()
     {
-        $totalProducts = Product::count();
-        $totalCategories = \App\Models\Category::count();
-        $lowStockCount = Product::where('stock', '<=', 5)->count();
-        
-        // Calculate Total Value (sum of price * stock)
-        $totalValue = Product::selectRaw('SUM(price * stock) as total_value')->value('total_value');
+        $chartData = \Illuminate\Support\Facades\Cache::remember('dashboard_chart_data', 300, function () {
+            $categoryData = \App\Models\Product::join('categories', 'products.category_id', '=', 'categories.id')
+                ->select('categories.name as label', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+                ->groupBy('categories.name')
+                ->get();
 
-        // Chart Data 1: Products per Category
-        $categoriesDistribution = \App\Models\Category::withCount('products')
-            ->having('products_count', '>', 0)
-            ->get()
-            ->map(function ($cat) {
-                return [
-                    'label' => $cat->name,
-                    'count' => $cat->products_count
-                ];
-            });
+            $labels = $categoryData->pluck('label');
+            $data = $categoryData->pluck('count');
 
-        // Chart Data 2: Product Status (Active vs Inactive)
-        $activeProducts = Product::where('status', true)->count();
-        $inactiveProducts = Product::where('status', false)->count();
+            // Active vs Inactive
+            $statusData = \App\Models\Product::select('status', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+                ->groupBy('status')
+                ->get();
+                
+            $activeCount = $statusData->where('status', true)->first()->count ?? 0;
+            $inactiveCount = $statusData->where('status', false)->first()->count ?? 0;
 
-        return response()->json([
-            'data' => [
-                'total_products' => $totalProducts,
-                'total_categories' => $totalCategories,
-                'low_stock_count' => $lowStockCount,
-                'total_value' => $totalValue ? (float) $totalValue : 0,
-                'chart_data' => $categoriesDistribution,
-                'status_data' => [
-                    'active' => $activeProducts,
-                    'inactive' => $inactiveProducts
+            return [
+                'categories' => [
+                    'labels' => $labels,
+                    'data' => $data
+                ],
+                'status' => [
+                    'active' => $activeCount,
+                    'inactive' => $inactiveCount
                 ]
-            ]
-        ]);
+            ];
+        });
+
+        return response()->json($chartData);
     }
 }

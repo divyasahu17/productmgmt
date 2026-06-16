@@ -20,21 +20,29 @@
         <div class="dropdown-menu notif-dropdown" v-show="isNotifOpen">
           <div class="notif-header">
             <h4>Notifications</h4>
-            <button class="text-btn" @click="markAllRead" v-if="notificationStore.unreadCount > 0">Mark all as read</button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button class="text-btn" @click="markAllRead" v-if="notificationStore.unreadCount > 0">Mark all as read</button>
+              <button class="close-notif-btn" @click="isNotifOpen = false" title="Close Dropdown" style="padding: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
           </div>
-          <div class="notif-body" v-if="notificationStore.notifications.length > 0">
+          <div class="notif-body" v-if="unreadNotifications.length > 0">
             <div 
-              v-for="notif in notificationStore.notifications" 
+              v-for="notif in unreadNotifications" 
               :key="notif.id" 
-              class="notif-item" 
-              :class="{ 'unread': notif.read_at === null }"
-              @click="markAsRead(notif.id)"
+              class="notif-item unread"
+              @click="goToNotifications"
+              style="cursor: pointer;"
             >
               <div class="notif-icon">⚠️</div>
               <div class="notif-content">
                 <p>{{ notif.data.message }}</p>
                 <span class="notif-time">{{ new Date(notif.created_at).toLocaleDateString() }}</span>
               </div>
+              <button class="close-notif-btn" @click.stop="markAsRead(notif.id)" title="Mark as read">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
             </div>
           </div>
           <div class="notif-body empty-notif" v-else>
@@ -70,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notification';
 import { useToastStore } from '../../stores/toast';
@@ -85,6 +93,10 @@ const router = useRouter();
 
 const isDropdownOpen = ref(false);
 const isNotifOpen = ref(false);
+
+const unreadNotifications = computed(() => {
+  return notificationStore.notifications.filter(n => !n.read_at);
+});
 
 onMounted(() => {
   if (authStore.user) {
@@ -101,6 +113,11 @@ const toggleNotifications = () => {
   if (isNotifOpen.value) {
     isDropdownOpen.value = false;
   }
+};
+
+const goToNotifications = () => {
+  isNotifOpen.value = false;
+  router.push('/admin/notifications');
 };
 
 const markAsRead = async (id) => {
@@ -367,8 +384,8 @@ const handleLogout = async () => {
   gap: 1rem;
   padding: 1rem;
   border-bottom: 1px solid #f1f5f9;
-  cursor: pointer;
   transition: background-color 0.2s;
+  align-items: flex-start;
 }
 
 .notif-item:hover {
@@ -381,6 +398,11 @@ const handleLogout = async () => {
 
 .notif-icon {
   font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.notif-content {
+  flex-grow: 1;
 }
 
 .notif-content p {
@@ -393,5 +415,29 @@ const handleLogout = async () => {
 .notif-time {
   font-size: 0.75rem;
   color: #94a3b8;
+}
+
+.close-notif-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.close-notif-btn:hover {
+  background: #e2e8f0;
+  color: #ef4444;
+}
+
+.close-notif-btn svg {
+  width: 16px;
+  height: 16px;
 }
 </style>

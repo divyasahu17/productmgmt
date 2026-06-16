@@ -34,12 +34,6 @@ export const useAuthStore = defineStore('auth', {
                 const response = await api.post('/v1/login', credentials);
                 this.setToken(response.data.token);
                 this.user = response.data.user;
-                
-                // Sync cart
-                const { useCartStore } = await import('./cart');
-                const cartStore = useCartStore();
-                await cartStore.syncCart();
-                
                 return true;
             } catch (err) {
                 this.error = err.response?.data?.errors || err.message;
@@ -55,12 +49,6 @@ export const useAuthStore = defineStore('auth', {
                 const response = await api.get('/v1/user');
                 // Handle Laravel Resource 'data' wrapper if present
                 this.user = response.data.data ? response.data.data : response.data;
-                
-                // Fetch user's cart from backend
-                const { useCartStore } = await import('./cart');
-                const cartStore = useCartStore();
-                await cartStore.fetchCart();
-                
                 return true;
             } catch (err) {
                 this.clearAuth();
@@ -157,10 +145,10 @@ export const useAuthStore = defineStore('auth', {
             this.user = null;
             this.token = null;
             localStorage.removeItem('token');
+            // Clear cart state
             import('./cart').then(({ useCartStore }) => {
-                const cartStore = useCartStore();
-                cartStore.clearLocalOnly();
-            }).catch(console.error);
+                useCartStore().resetState();
+            });
         }
     }
 });

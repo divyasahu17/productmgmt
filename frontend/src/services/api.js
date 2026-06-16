@@ -1,10 +1,20 @@
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
+    }
+});
+
+// Configure Axios Retry for fault tolerance (retry on network errors or 5xx status codes)
+axiosRetry(api, { 
+    retries: 3, 
+    retryDelay: axiosRetry.exponentialDelay,
+    retryCondition: (error) => {
+        return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.response?.status >= 500;
     }
 });
 
@@ -17,34 +27,13 @@ api.interceptors.request.use(config => {
     return config;
 });
 
-import { useToast } from 'vue-toastification';
-
-const toast = useToast();
-
-// Response interceptor to handle errors
+// Response interceptor to handle 401s
 api.interceptors.response.use(
     response => response,
     error => {
-        if (error.response) {
-            const status = error.response.status;
-            const message = error.response.data?.message || 'An error occurred';
-
-            if (status === 401) {
-                localStorage.removeItem('token');
-                window.dispatchEvent(new Event('auth:unauthorized'));
-                toast.error('Session expired. Please login again.');
-            } else if (status === 403) {
-                toast.error('Permission Denied.');
-            } else if (status === 422) {
-                // For validation errors, we might want to just show a generic message or let the component handle it
-                // toast.warning(message);
-            } else if (status >= 500) {
-                toast.error('Something went wrong on our end.');
-            } else {
-                toast.error(message);
-            }
-        } else {
-            toast.error('Network Error.');
+        if (error.response && error.response.status === 401) {
+            localStorage.removeItem('token');
+            window.dispatchEvent(new Event('auth:unauthorized'));
         }
         return Promise.reject(error);
     }

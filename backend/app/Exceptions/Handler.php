@@ -48,27 +48,13 @@ class Handler extends ExceptionHandler
         });
 
         $this->renderable(function (Throwable $e, $request) {
-            if ($request->is('api/*') || $request->wantsJson()) {
-                $statusCode = 500;
-                $errors = null;
-
-                if ($e instanceof \Illuminate\Validation\ValidationException) {
-                    $statusCode = 422;
-                    $errors = $e->errors();
-                } elseif ($e instanceof \Illuminate\Auth\AuthenticationException) {
-                    $statusCode = 401;
-                } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
-                    $statusCode = 404;
-                } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
-                    $statusCode = 403;
-                } elseif ($this->isHttpException($e)) {
-                    $statusCode = $e->getStatusCode();
-                }
-
+            if ($request->is('api/*') || $request->expectsJson()) {
+                $statusCode = $this->isHttpException($e) ? $e->getStatusCode() : 500;
+                $message = $e->getMessage() ?: 'An unexpected error occurred.';
+                
                 return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage() ?: 'Something went wrong',
-                    'errors' => $errors
+                    'error' => true,
+                    'message' => $message,
                 ], $statusCode);
             }
         });
